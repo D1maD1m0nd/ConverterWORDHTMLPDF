@@ -1,0 +1,68 @@
+C:\Users\Анастасия\source\repos\Converter\Converter\bin\Debug\Converter.exe.config
+C:\Users\Анастасия\source\repos\Converter\Converter\bin\Debug\Converter.exe
+C:\Users\Анастасия\source\repos\Converter\Converter\bin\Debug\Converter.pdb
+C:\Users\Анастасия\source\repos\Converter\Converter\bin\Debug\DocumentFormat.OpenXml.dll
+C:\Users\Анастасия\source\repos\Converter\Converter\bin\Debug\OpenXmlPowerTools.dll
+C:\Users\Анастасия\source\repos\Converter\Converter\bin\Debug\System.Diagnostics.DiagnosticSource.dll
+C:\Users\Анастасия\source\repos\Converter\Converter\bin\Debug\System.IO.Packaging.dll
+C:\Users\Анастасия\source\repos\Converter\Converter\bin\Debug\DocumentFormat.OpenXml.xml
+C:\Users\Анастасия\source\repos\Converter\Converter\bin\Debug\System.Diagnostics.DiagnosticSource.xml
+C:\Users\Анастасия\source\repos\Converter\Converter\obj\Debug\Converter.csprojAssemblyReference.cache
+C:\Users\Анастасия\source\repos\Converter\Converter\obj\Debug\Converter.csproj.CoreCompileInputs.cache
+C:\Users\Анастасия\source\repos\Converter\Converter\obj\Debug\Converter.csproj.CopyComplete
+C:\Users\Анастасия\source\repos\Converter\Converter\obj\Debug\Converter.exe
+C:\Users\Анастасия\source\repos\Converter\Converter\obj\Debug\Converter.pdb
+C:\Users\Анастасия\source\repos\Converter\Converter\bin\Debug\System.Drawing.Common.dll
+C:\Users\Анастасия\source\repos\Converter\Converter\bin\Debug\DinkToPdf.dll
+C:\Users\Анастасия\source\repos\Converter\Converter\bin\Debug\System.Reflection.TypeExtensions.dll
+C:\Users\Анастасия\source\repos\Converter\Converter\bin\Debug\DinkToPdf.pdb
+C:\Users\Анастасия\source\repos\Converter\Converter\bin\Debug\DinkToPdf.xml
+C:\Users\Анастасия\source\repos\Converter\Converter\bin\Debug\Mono.Options.dll
+C:\Users\Анастасия\source\repos\Converter\Converter\bin\Debug\EO.Base.dll
+C:\Users\Анастасия\source\repos\Converter\Converter\bin\Debug\EO.Pdf.dll
+C:\Users\Анастасия\source\repos\Converter\Converter\bin\Debug\EO.WebBrowser.dll
+C:\Users\Анастасия\source\repos\Converter\Converter\bin\Debug\EO.WebEngine.dll
+C:\Users\Анастасия\source\repos\Converter\Converter\bin\Debug\EO.Base.xml
+C:\Users\Анастасия\source\repos\Converter\Converter\bin\Debug\EO.Pdf.xml
+C:\Users\Анастасия\source\repos\Converter\Converter\bin\Debug\EO.WebBrowser.xml
+C:\Users\Анастасия\source\repos\Converter\Converter\bin\Debug\EO.WebEngine.xml
+C:\Users\Анастасия\source\repos\Converter\Converter\bin\Debug\Select.HtmlToPdf.dll
+C:\Users\Анастасия\source\repos\Converter\Converter\bin\Debug\Select.HtmlToPdf.xml
+C:\Users\Анастасия\source\repos\Converter\Converter\bin\Debug\Select.Html.dep
+C:\Users\Анастасия\source\repos\Converter\Converter\bin\Debug\NReco.PdfGenerator.dll
+C:\Users\Анастасия\source\repos\Converter\Converter\bin\Debug\NReco.PdfGenerator.xml
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\Converter.exe.config
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\Converter.exe
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\Converter.pdb
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\DinkToPdf.dll
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\DocumentFormat.OpenXml.dll
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\EO.Base.dll
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\EO.Pdf.dll
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\EO.WebBrowser.dll
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\EO.WebEngine.dll
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\Mono.Options.dll
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\NReco.PdfGenerator.dll
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\OpenXmlPowerTools.dll
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\Select.HtmlToPdf.dll
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\System.Diagnostics.DiagnosticSource.dll
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\System.Drawing.Common.dll
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\System.IO.Packaging.dll
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\System.Reflection.TypeExtensions.dll
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\DinkToPdf.pdb
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\DinkToPdf.xml
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\DocumentFormat.OpenXml.xml
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\EO.Base.xml
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\EO.Pdf.xml
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\EO.WebBrowser.xml
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\EO.WebEngine.xml
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\NReco.PdfGenerator.xml
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\Select.HtmlToPdf.xml
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\System.Diagnostics.DiagnosticSource.xml
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\Select.Html.dep
+D:\Download\Converter (1)\Converter\Converter\obj\Debug\Converter.csprojAssemblyReference.cache
+D:\Download\Converter (1)\Converter\Converter\obj\Debug\Converter.csproj.CoreCompileInputs.cache
+D:\Download\Converter (1)\Converter\Converter\obj\Debug\Converter.csproj.CopyComplete
+D:\Download\Converter (1)\Converter\Converter\obj\Debug\Converter.exe
+D:\Download\Converter (1)\Converter\Converter\obj\Debug\Converter.pdb
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\Fizzler.dll
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\Fizzler.pdb
