@@ -19,25 +19,26 @@ namespace Converter2
             {
                 htmlText = sw.ReadToEnd();
             }
+            insertClass("dsads", "table", htmlText);
+
+
+
+            Console.ReadKey();
+        }
+
+        static void insertClass(string currentClass, string node, string htmlText)
+        {
             var html = new HtmlDocument();
             html.LoadHtml(htmlText);
             var document = html.DocumentNode;
-
-            // yields: [<p class="content">Fizzler</p>]
-
-            Console.WriteLine(document.QuerySelectorAll("table").Count());
-            foreach (var i in document.QuerySelectorAll("table").ToList())
-            {
-                foreach(var k in i.QuerySelectorAll("span").ToList())
-                {
-                    k.AddClass("6564");
-                    Console.WriteLine(k.OuterHtml);
-
-                }
-            }
-
+            var arrHtml = document.QuerySelectorAll(node).ToArray();
             
-            Console.ReadKey();
+            for (int i = 0; i < arrHtml.Length; i++)
+            {
+                arrHtml[i].Attributes[1].Value = "claaaaaaaaaaaaaaaas";
+                arrHtml[i].InnerHtml = "123";
+            }
+            Console.WriteLine(document.OuterHtml);
         }
     }
 }

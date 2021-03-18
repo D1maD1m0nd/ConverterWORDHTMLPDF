@@ -10,6 +10,8 @@ using System.Xml.Linq;
 using DocumentFormat.OpenXml.Packaging;
 using EO.Pdf;
 using OpenXmlPowerTools;
+using Fizzler.Systems.HtmlAgilityPack;
+using HtmlAgilityPack;
 
 namespace Converter
 {
@@ -44,19 +46,8 @@ namespace Converter
             Console.WriteLine(htmlText.IndexOf("lrm"));
             //string testHtml = "<table> <td> <td> <td> <br> <eqwew<>ewqewqeQW<> </table>";
             htmlText = fixSubTag(htmlText, "<table", "</table", "<br");
-            htmlText = insertClass(htmlText, "<table", "<table dir = \"ltr\" class = \"table\" border=\"1\">");
-            //Console.WriteLine(htmlText.ToString());
-            //EO.Pdf.HtmlToPdf.ConvertHtml(htmlText.ToString(), "File.pdf");
-            //Console.ReadKey();
-
-
-
-            // StreamReader sr = new StreamReader("File.pdf");
-
-
-
-            // var a = EO.Pdf.HtmlToPdf.ConvertHtml(htmlText.ToString(), sr, HtmlToPdfOptions.Deserialize(byte[] f));
-
+            var idxes = searchAllOccurrences(htmlText, "<table");
+            htmlText = insertClass("table", "table", htmlText, idxes.Count - 2);
 
             using (MemoryStream ms = new MemoryStream())
             {
@@ -64,63 +55,51 @@ namespace Converter
 
                 var a = EO.Pdf.HtmlToPdf.ConvertHtml(htmlText.ToString(), "file99.pdf");
                 var c = ms.ToArray();
-                //System.IO.File.WriteAllBytes("File.pdf", c);
+       
 
             }
 
-            //var a = EO.Pdf.HtmlToPdf.ConvertHtml(htmlText.ToString(), "file99.pdf");
-
-            //SelectPdf.HtmlToPdf converter = new SelectPdf.HtmlToPdf();
-            //byte[] m;
-            //SelectPdf.PdfDocument doc = converter.ConvertHtmlString(htmlText);
-            //using (MemoryStream ms = new MemoryStream())
-            //{
-            //    doc.Save(ms);
-            //    m = ms.ToArray();
-
-
-            //}
-
-            //System.IO.File.WriteAllBytes("gggg.pdf", m);
-            //doc.Save("test.pdf");
-            //doc.Close();
-            //Console.ReadKey();
-
-            //byte[] bytes = System.IO.File.ReadAllBytes(m);
-
-            
             var writer = File.CreateText("html2.html");
             
             
-            // (new NReco.PdfGenerator.HtmlToPdfConverter()).GeneratePdf(htmlText, null, "dsadsa.pdf"); 
+           
             writer.WriteLine(htmlText);
             writer.Dispose();
             Console.ReadKey();
 
             
         }
-        public static string insertClass(string text, string tag, string replaceTag)
+        static string insertClass(string currentClass, string node, string htmlText, int numReplaceElem = 0)
         {
+            var html = new HtmlAgilityPack.HtmlDocument();
+            html.LoadHtml(htmlText);
+            var document = html.DocumentNode;
+            var arrHtml = document.QuerySelectorAll(node).ToArray();
 
-            List<int> listsTag = searchAllOccurrences(text, tag);
-            string cutString = string.Empty;
-            char[] symbol = text.ToCharArray();
-            int indexStart = listsTag[listsTag.Count - 2];
-            for (int i = indexStart; i < text.Length; i++)
+            if (numReplaceElem > 0)
             {
-                cutString += symbol[i];
-                if(symbol[i] == '>')
+                if(numReplaceElem <= arrHtml.Length - 1)
                 {
-                    break;
+                    var attribArr = arrHtml[numReplaceElem].Attributes.ToArray();
+                    for(int i = 0; i < attribArr.Length; i++)
+                    {
+                        
+                        if(attribArr[i].Name == "class")
+                        {
+                            
+                            attribArr[i].Value = currentClass;
+                        }
+                    }
                 }
-
+                return document.OuterHtml;
             }
-            Console.WriteLine(cutString);
- 
-         
-            
-            return text.Remove(indexStart, cutString.Length).Insert(indexStart, replaceTag);
 
+            for (int i = 0; i < arrHtml.Length; i++)
+            {Ч
+                arrHtml[i].Attributes[1].Value = currentClass;
+               ммммм
+            }
+            return document.OuterHtml;
         }
         public static void insertClassIntoTableElem(string text, string tag, string css)
         {

@@ -66,3 +66,8 @@ D:\Download\Converter (1)\Converter\Converter\obj\Debug\Converter.exe
 D:\Download\Converter (1)\Converter\Converter\obj\Debug\Converter.pdb
 D:\Download\Converter (1)\Converter\Converter\bin\Debug\Fizzler.dll
 D:\Download\Converter (1)\Converter\Converter\bin\Debug\Fizzler.pdb
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\Fizzler.Systems.HtmlAgilityPack.dll
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\HtmlAgilityPack.dll
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\Fizzler.Systems.HtmlAgilityPack.pdb
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\HtmlAgilityPack.pdb
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\HtmlAgilityPack.xml
