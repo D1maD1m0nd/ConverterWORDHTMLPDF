@@ -47,8 +47,13 @@ namespace Converter
             //string testHtml = "<table> <td> <td> <td> <br> <eqwew<>ewqewqeQW<> </table>";
             htmlText = fixSubTag(htmlText, "<table", "</table", "<br");
             var idxes = searchAllOccurrences(htmlText, "<table");
+            //меняем положение таблицы
             htmlText = insertClass("table", "table", htmlText, idxes.Count - 2);
-
+            //меняем шрифт
+            htmlText = insertClass("changeTextIntable", "table", "span", htmlText, idxes.Count - 2);
+            //меняем размер ячейки и их обводку
+            htmlText = insertClass("changeTdItem", "table", "td", htmlText, idxes.Count - 2);
+           // htmlText = insertClass("changeTextInTable", "table", "p", htmlText, idxes.Count - 2); 
             using (MemoryStream ms = new MemoryStream())
             {
                 //string html, string pdfFileName,
@@ -69,35 +74,74 @@ namespace Converter
 
             
         }
-        static string insertClass(string currentClass, string node, string htmlText, int numReplaceElem = 0)
+        static string insertClass(string currentClass, string node,string subNode,string htmlText, int numReplaceElem)
         {
+            if (numReplaceElem <= 0) return htmlText;
+
             var html = new HtmlAgilityPack.HtmlDocument();
             html.LoadHtml(htmlText);
             var document = html.DocumentNode;
             var arrHtml = document.QuerySelectorAll(node).ToArray();
 
-            if (numReplaceElem > 0)
+            if (numReplaceElem <= arrHtml.Length - 1)
             {
-                if(numReplaceElem <= arrHtml.Length - 1)
+                var arrSubTags = arrHtml[numReplaceElem].QuerySelectorAll(subNode).ToArray();
+                for(int i = 0; i < arrSubTags.Length; i++)
                 {
-                    var attribArr = arrHtml[numReplaceElem].Attributes.ToArray();
-                    for(int i = 0; i < attribArr.Length; i++)
+                    
+                    var attribArr = arrSubTags[i].Attributes.ToArray();
+                    for (int k = 0; k < attribArr.Length; k++)
                     {
-                        
-                        if(attribArr[i].Name == "class")
+
+                        if (attribArr[k].Name == "class")
                         {
-                            
-                            attribArr[i].Value = currentClass;
+                            attribArr[k].Value = currentClass;
+                           
                         }
                     }
+                    Console.WriteLine(arrSubTags[i].OuterHtml);
                 }
-                return document.OuterHtml;
+               
+                
             }
+            return document.OuterHtml;
+        }
+        static string insertClass(string currentClass, string node, string htmlText, int numReplaceElem)
+        {
+            if (numReplaceElem <= 0) return htmlText;
 
+            var html = new HtmlAgilityPack.HtmlDocument();
+            html.LoadHtml(htmlText);
+            var document = html.DocumentNode;
+            var arrHtml = document.QuerySelectorAll(node).ToArray();
+
+            if(numReplaceElem <= arrHtml.Length - 1)
+            {
+                var attribArr = arrHtml[numReplaceElem].Attributes.ToArray();
+                for(int i = 0; i < attribArr.Length; i++)
+                {
+                        
+                    if(attribArr[i].Name == "class")
+                    {
+                            
+                        attribArr[i].Value = currentClass;
+                    }
+                }
+            }
+            return document.OuterHtml;
+
+        }
+
+        public static string insertClass(string currentClass, string node, string htmlText)
+        {
+            var html = new HtmlAgilityPack.HtmlDocument();
+            html.LoadHtml(htmlText);
+            var document = html.DocumentNode;
+            var arrHtml = document.QuerySelectorAll(node).ToArray();
             for (int i = 0; i < arrHtml.Length; i++)
-            {Ч
+            {
                 arrHtml[i].Attributes[1].Value = currentClass;
-               ммммм
+
             }
             return document.OuterHtml;
         }
@@ -240,12 +284,12 @@ namespace Converter
                         {
                             AdditionalCss = " body { width: 21cm; margin: 1cm auto; max-width: 21cm; padding: 1cm; }" +
                                 "img {page-break-before: auto; page-break-after: auto; page-break-inside: avoid; position: relative; }" +
-                                "br {page-break-before: always;}" +
+                                "br {page-break-before: always;} .changeTextIntable{font-size:14px;}  .changeTdItem{border:1px solid; height: auto; padding-top:6px; vertical-align:middlle;}" +
                                 ".table {transform: rotate(-90deg);" +
-                                    "margin-top:150px;" +
-                                    "margin-bottom:400px;" +
+                                    "margin-top:20px;" +
+                                    "margin-bottom:20px;" +
                                     "border-collapse: collapse;" +
-                                    "height: 14cm;}" 
+                                    "height: 30cm; }" 
                                 + $"{spanElem}",
 
                             PageTitle = pageTitle,
