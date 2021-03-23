@@ -53,6 +53,8 @@ namespace Converter
             htmlText = insertClass("changeTextIntable", "table", "span", htmlText, idxes.Count - 2);
             //меняем размер ячейки и их обводку
             htmlText = insertClass("changeTdItem", "table", "td", htmlText, idxes.Count - 2);
+
+            insertTag("12", "table", htmlText);
            // htmlText = insertClass("changeTextInTable", "table", "p", htmlText, idxes.Count - 2); 
             using (MemoryStream ms = new MemoryStream())
             {
@@ -99,7 +101,6 @@ namespace Converter
                            
                         }
                     }
-                    Console.WriteLine(arrSubTags[i].OuterHtml);
                 }
                
                 
@@ -131,7 +132,14 @@ namespace Converter
             return document.OuterHtml;
 
         }
-
+        public static void insertClassNode(string currentClass, string node, string htmlText)
+        {
+            var html = new HtmlAgilityPack.HtmlDocument();
+            html.LoadHtml(htmlText);
+            var document = html.DocumentNode;
+            var arrHtml = document.QuerySelectorAll(node).ToArray();
+            Console.WriteLine(arrHtml[0].ParentNode);
+        }
         public static string insertClass(string currentClass, string node, string htmlText)
         {
             var html = new HtmlAgilityPack.HtmlDocument();
