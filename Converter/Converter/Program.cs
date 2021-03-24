@@ -42,6 +42,13 @@ namespace Converter
                     htmlText = ParseDOCX(fileInfo);
                 }
             }
+            var html = new HtmlAgilityPack.HtmlDocument();
+            html.LoadHtml(htmlText);
+            var document = html.DocumentNode;
+            var node = searchNode(document, "Счет-фактура", "div");
+
+            
+            Console.WriteLine(node.OuterHtml);
 
             Console.WriteLine(htmlText.IndexOf("lrm"));
             //string testHtml = "<table> <td> <td> <td> <br> <eqwew<>ewqewqeQW<> </table>";
@@ -54,7 +61,7 @@ namespace Converter
             //меняем размер ячейки и их обводку
             htmlText = insertClass("changeTdItem", "table", "td", htmlText, idxes.Count - 2);
 
-            insertTag("12", "table", htmlText);
+            
            // htmlText = insertClass("changeTextInTable", "table", "p", htmlText, idxes.Count - 2); 
             using (MemoryStream ms = new MemoryStream())
             {
@@ -75,6 +82,19 @@ namespace Converter
             Console.ReadKey();
 
             
+        }
+        static HtmlAgilityPack.HtmlNode searchNode(HtmlAgilityPack.HtmlNode document, string keySearchValue, string tag)
+        {
+            var htmlArr = document.QuerySelectorAll(tag).ToArray();
+
+            foreach(var item in htmlArr)
+            {
+                if(item.InnerText.IndexOf(keySearchValue) != -1)
+                {
+                    return item;
+                }
+            }
+            return null;
         }
         static string insertClass(string currentClass, string node,string subNode,string htmlText, int numReplaceElem)
         {
@@ -132,14 +152,22 @@ namespace Converter
             return document.OuterHtml;
 
         }
-        public static void insertClassNode(string currentClass, string node, string htmlText)
+        public static HtmlAgilityPack.HtmlNode searchNode(string reqText, string tag, string htmlText)
         {
             var html = new HtmlAgilityPack.HtmlDocument();
             html.LoadHtml(htmlText);
             var document = html.DocumentNode;
-            var arrHtml = document.QuerySelectorAll(node).ToArray();
-            Console.WriteLine(arrHtml[0].ParentNode);
+            var arrHtml = document.QuerySelectorAll(tag).ToArray();
+            for(int i = 0; i < arrHtml.Length; i++)
+            {
+                if (arrHtml[i].OuterHtml.IndexOf("Счет-фактура") != -1)
+                {
+                    return arrHtml[i];
+                }
+            }
+            return null;
         }
+
         public static string insertClass(string currentClass, string node, string htmlText)
         {
             var html = new HtmlAgilityPack.HtmlDocument();
