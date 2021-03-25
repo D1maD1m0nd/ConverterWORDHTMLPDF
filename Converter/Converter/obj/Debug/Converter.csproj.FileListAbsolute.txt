@@ -71,3 +71,8 @@ D:\Download\Converter (1)\Converter\Converter\bin\Debug\HtmlAgilityPack.dll
 D:\Download\Converter (1)\Converter\Converter\bin\Debug\Fizzler.Systems.HtmlAgilityPack.pdb
 D:\Download\Converter (1)\Converter\Converter\bin\Debug\HtmlAgilityPack.pdb
 D:\Download\Converter (1)\Converter\Converter\bin\Debug\HtmlAgilityPack.xml
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\MaterialDesignColors.dll
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\MaterialDesignThemes.Wpf.dll
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\MaterialDesignColors.pdb
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\MaterialDesignThemes.Wpf.pdb
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\MaterialDesignThemes.Wpf.xml
