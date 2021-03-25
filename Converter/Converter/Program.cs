@@ -42,24 +42,7 @@ namespace Converter
                     htmlText = ParseDOCX(fileInfo);
                 }
             }
-            if(htmlText.IndexOf("Счет-фактура") != -1)
-            {
-                var html = new HtmlAgilityPack.HtmlDocument();
-                html.LoadHtml(htmlText);
-                var document = html.DocumentNode;
-                //ищем таблицу с счет фактурой
-                var node = searchNode(document, "Счет-фактура", "div");
-                //вставляем класс table что бы ее перевернуть
-                insertClass(node, "table", "table", "Сумма", true);
-                node = searchNode(node, "Сумма", "table");
-                //меняем шрифт
-                insertClass(node, "changeTextIntable", "span");
-                //меняем размер ячейки и их обводку
-                insertClass(node, "changeTdItem", "td");
-
-                deleteTag(document, "table", "br");
-                htmlText = document.OuterHtml;
-            }
+           
             
 
             using (MemoryStream ms = new MemoryStream())
@@ -90,7 +73,7 @@ namespace Converter
          * 
          * @return {HtmlAgilityPack.HtmlNode} возвращает найденный экземпляр HtmlNode
          */
-        static HtmlAgilityPack.HtmlNode searchNode(HtmlAgilityPack.HtmlNode document, string keySearchValue, string tag)
+        private static HtmlAgilityPack.HtmlNode searchNode(HtmlAgilityPack.HtmlNode document, string keySearchValue, string tag)
         {
             var htmlArr = document.QuerySelectorAll(tag).ToArray();
 
@@ -110,7 +93,7 @@ namespace Converter
          * @param tag - тег по которому необходимо построить связь
          * @param delTag - тег, который необходимо удалить
          */
-        static void deleteTag(HtmlAgilityPack.HtmlNode node, string tag, string delTag)
+        private static void deleteTag(HtmlAgilityPack.HtmlNode node, string tag, string delTag)
         {
             var htmlArr = node.QuerySelectorAll(tag).ToArray();
             foreach(var item in htmlArr)
@@ -120,8 +103,15 @@ namespace Converter
             
         }
         /**
+         * Вставляет в тег определенный класс
          * 
-        static void insertClass(HtmlAgilityPack.HtmlNode node, string currentClass, string tag, string exp = null, bool oneIter = false) {
+         *@param node - связь в которйо необходимо произвести изменения
+         *@param currendClass - связь , который вставляем
+         *@param tag тег, чью связь необходимо найти 
+         *@param exp выражение, по которому необходимо найти элемент
+         *@param флаг указывающий на количество проходов по массиву
+         */
+        private static void insertClass(HtmlAgilityPack.HtmlNode node, string currentClass, string tag, string exp = null, bool oneIter = false) {
             var htmlArr = node.QuerySelectorAll(tag).ToArray();
             
             foreach(var item in htmlArr)
@@ -146,7 +136,7 @@ namespace Converter
 
         }
 
-        public static Uri FixUri(string brokenUri)
+        private static Uri FixUri(string brokenUri)
         {
             string newURI = string.Empty;
             if (brokenUri.Contains("mailto:"))
@@ -162,7 +152,7 @@ namespace Converter
             return new Uri(newURI);
         }
 
-        public static string ParseDOCX(FileInfo fileInfo)
+        private static string ParseDOCX(FileInfo fileInfo)
         {
             try
             {
