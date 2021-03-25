@@ -42,8 +42,33 @@ namespace Converter
                     htmlText = ParseDOCX(fileInfo);
                 }
             }
-           
-            
+
+            if (htmlText.IndexOf("Счет-фактура") != -1)
+            {
+                var html = new HtmlAgilityPack.HtmlDocument();
+                html.LoadHtml(htmlText);
+                var document = html.DocumentNode;
+                //ищем таблицу с счет фактурой
+                var node = searchNode(document, "Счет-фактура", "div");
+                if(node != null)
+                {
+                    //вставляем класс table что бы ее перевернуть
+                    insertClass(node, "table", "table", "Сумма", true);
+                    node = searchNode(node, "Сумма", "table");
+                    if(node != null)
+                    {
+                        //меняем шрифт
+                        insertClass(node, "changeTextIntable", "span");
+                        //меняем размер ячейки и их обводку
+                        insertClass(node, "changeTdItem", "td");
+
+                        deleteTag(document, "table", "br");
+                        htmlText = document.OuterHtml;
+                    }
+                    
+                }
+                
+            }
 
             using (MemoryStream ms = new MemoryStream())
             {
