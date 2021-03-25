@@ -42,31 +42,28 @@ namespace Converter
                     htmlText = ParseDOCX(fileInfo);
                 }
             }
-            var html = new HtmlAgilityPack.HtmlDocument();
-            html.LoadHtml(htmlText);
-            var document = html.DocumentNode;
-            var node = searchNode(document, "Счет-фактура", "div");
+            if(htmlText.IndexOf("Счет-фактура") != -1)
+            {
+                var html = new HtmlAgilityPack.HtmlDocument();
+                html.LoadHtml(htmlText);
+                var document = html.DocumentNode;
+                //ищем таблицу с счет фактурой
+                var node = searchNode(document, "Счет-фактура", "div");
+                //вставляем класс table что бы ее перевернуть
+                insertClass(node, "table", "table", "Сумма", true);
+                node = searchNode(node, "Сумма", "table");
+                //меняем шрифт
+                insertClass(node, "changeTextIntable", "span");
+                //меняем размер ячейки и их обводку
+                insertClass(node, "changeTdItem", "td");
 
+                deleteTag(document, "table", "br");
+                htmlText = document.OuterHtml;
+            }
             
-            Console.WriteLine(node.OuterHtml);
 
-            Console.WriteLine(htmlText.IndexOf("lrm"));
-            //string testHtml = "<table> <td> <td> <td> <br> <eqwew<>ewqewqeQW<> </table>";
-            htmlText = fixSubTag(htmlText, "<table", "</table", "<br");
-            var idxes = searchAllOccurrences(htmlText, "<table");
-            //меняем положение таблицы
-            htmlText = insertClass("table", "table", htmlText, idxes.Count - 2);
-            //меняем шрифт
-            htmlText = insertClass("changeTextIntable", "table", "span", htmlText, idxes.Count - 2);
-            //меняем размер ячейки и их обводку
-            htmlText = insertClass("changeTdItem", "table", "td", htmlText, idxes.Count - 2);
-
-            
-           // htmlText = insertClass("changeTextInTable", "table", "p", htmlText, idxes.Count - 2); 
             using (MemoryStream ms = new MemoryStream())
             {
-                //string html, string pdfFileName,
-
                 var a = EO.Pdf.HtmlToPdf.ConvertHtml(htmlText.ToString(), "file99.pdf");
                 var c = ms.ToArray();
        
@@ -83,6 +80,16 @@ namespace Converter
 
             
         }
+
+        /**
+         * Ищет экземпляр Node в document по
+         * @param document - исходный объект документа
+         * @param keySearchValue -  текстовый ключ, по которому необходимо найти элемент, по типу в теге содержится слово счет фактура
+         * @param tag - тег, чей объект необходимо найти, указывать нужно без дополнительных знаков, 
+         * пример правильного запроса QuerySelectorAll("br")
+         * 
+         * @return {HtmlAgilityPack.HtmlNode} возвращает найденный экземпляр HtmlNode
+         */
         static HtmlAgilityPack.HtmlNode searchNode(HtmlAgilityPack.HtmlNode document, string keySearchValue, string tag)
         {
             var htmlArr = document.QuerySelectorAll(tag).ToArray();
@@ -96,185 +103,49 @@ namespace Converter
             }
             return null;
         }
-        static string insertClass(string currentClass, string node,string subNode,string htmlText, int numReplaceElem)
+        /**
+         * Удаляет тег в определенной свяи
+         * 
+         * @param node - связь , в которой происходит удаление
+         * @param tag - тег по которому необходимо построить связь
+         * @param delTag - тег, который необходимо удалить
+         */
+        static void deleteTag(HtmlAgilityPack.HtmlNode node, string tag, string delTag)
         {
-            if (numReplaceElem <= 0) return htmlText;
-
-            var html = new HtmlAgilityPack.HtmlDocument();
-            html.LoadHtml(htmlText);
-            var document = html.DocumentNode;
-            var arrHtml = document.QuerySelectorAll(node).ToArray();
-
-            if (numReplaceElem <= arrHtml.Length - 1)
+            var htmlArr = node.QuerySelectorAll(tag).ToArray();
+            foreach(var item in htmlArr)
             {
-                var arrSubTags = arrHtml[numReplaceElem].QuerySelectorAll(subNode).ToArray();
-                for(int i = 0; i < arrSubTags.Length; i++)
+                item.OuterHtml.Replace(delTag, string.Empty);
+            }
+            
+        }
+        /**
+         * 
+        static void insertClass(HtmlAgilityPack.HtmlNode node, string currentClass, string tag, string exp = null, bool oneIter = false) {
+            var htmlArr = node.QuerySelectorAll(tag).ToArray();
+            
+            foreach(var item in htmlArr)
+            {
+                if(exp == null || item.OuterHtml.IndexOf(exp) != -1)
                 {
-                    
-                    var attribArr = arrSubTags[i].Attributes.ToArray();
-                    for (int k = 0; k < attribArr.Length; k++)
+                    foreach (var itemAttrib in item.Attributes)
                     {
-
-                        if (attribArr[k].Name == "class")
+                            
+                        if (itemAttrib.Name == "class")
                         {
-                            attribArr[k].Value = currentClass;
-                           
+
+                            itemAttrib.Value = currentClass;
+                            Console.WriteLine(item.OuterHtml);
+                            if(oneIter)
+                                return;
                         }
                     }
                 }
-               
-                
-            }
-            return document.OuterHtml;
-        }
-        static string insertClass(string currentClass, string node, string htmlText, int numReplaceElem)
-        {
-            if (numReplaceElem <= 0) return htmlText;
-
-            var html = new HtmlAgilityPack.HtmlDocument();
-            html.LoadHtml(htmlText);
-            var document = html.DocumentNode;
-            var arrHtml = document.QuerySelectorAll(node).ToArray();
-
-            if(numReplaceElem <= arrHtml.Length - 1)
-            {
-                var attribArr = arrHtml[numReplaceElem].Attributes.ToArray();
-                for(int i = 0; i < attribArr.Length; i++)
-                {
-                        
-                    if(attribArr[i].Name == "class")
-                    {
-                            
-                        attribArr[i].Value = currentClass;
-                    }
-                }
-            }
-            return document.OuterHtml;
-
-        }
-        public static HtmlAgilityPack.HtmlNode searchNode(string reqText, string tag, string htmlText)
-        {
-            var html = new HtmlAgilityPack.HtmlDocument();
-            html.LoadHtml(htmlText);
-            var document = html.DocumentNode;
-            var arrHtml = document.QuerySelectorAll(tag).ToArray();
-            for(int i = 0; i < arrHtml.Length; i++)
-            {
-                if (arrHtml[i].OuterHtml.IndexOf("Счет-фактура") != -1)
-                {
-                    return arrHtml[i];
-                }
-            }
-            return null;
-        }
-
-        public static string insertClass(string currentClass, string node, string htmlText)
-        {
-            var html = new HtmlAgilityPack.HtmlDocument();
-            html.LoadHtml(htmlText);
-            var document = html.DocumentNode;
-            var arrHtml = document.QuerySelectorAll(node).ToArray();
-            for (int i = 0; i < arrHtml.Length; i++)
-            {
-                arrHtml[i].Attributes[1].Value = currentClass;
-
-            }
-            return document.OuterHtml;
-        }
-        public static void insertClassIntoTableElem(string text, string tag, string css)
-        {
-            CoordinateTag coordinate = searchAllOccurrences(text, "<table", "</table");
-            int startLast = coordinate.start[coordinate.start.Count - 2];
-            int endLast = coordinate.end[coordinate.end.Count - 2];
-            List<int> tags = searchAllOccurrences(text, tag, startLast, endLast);
-            foreach(int tagItem in tags)
-            {
-                Console.WriteLine(tagItem);
-            }
-            Console.WriteLine("Длинна отфильтрованных вхождений" + tags.Count);
-
-        }
-       
-        public static string fixSubTag(string text, string str1, string str2, string delStr)
-        {
-            // если входит в диапозон то удаляем
-            int delElem = text.IndexOf(delStr);
-
-            var indices = searchAllOccurrences(text, str1);
-
-            var indices1 = searchAllOccurrences(text, str2);
-
-
-            for (int i = 0; i < indices.Count; i++)
-            {
-                if (indices[i] < delElem && indices1[i] > delElem)
-                {
-                    text = text.Remove(delElem, delStr.Length);
-                    return text;
-                }
+                    
             }
 
-            return text;
-        }
-        /*
-         * Поиск всех вхождений подстроки в строку
-         * @param text - строка где производится поиск
-         * @param searchStr - строка , которую необходимо найти
-         * 
-         * @return список вхождений строки 
-         */
-        public static List<int> searchAllOccurrences(string text, string searchStr)
-        {
-            List<int> indices = new List<int>();
-            int index = text.IndexOf(searchStr, 0);
-            while (index > -1)
-            {
-                indices.Add(index);
-                index = text.IndexOf(searchStr, index + searchStr.Length);
-            }
-            return indices;
         }
 
-        /*
-         * Поиск начала и конца тега
-         * @param text - строка где производится поиск
-         * @param searchStrStart - начало строки
-         * @param searchStrEnd-2 - конец строки
-         * 
-         * @return CoordinateTag с свойствами старта и конца, два параллельных списка
-         */
-        public static CoordinateTag searchAllOccurrences(string text, string searchStrStart, string searchStrEnd)
-        {
-            var coordinate = new CoordinateTag();
-            coordinate.start = searchAllOccurrences(text, searchStrStart);
-            coordinate.end = searchAllOccurrences(text, searchStrEnd);
-            return coordinate;
-        }
-
-        /*
-         * Поиск все вхождений в заданном диапозоне
-         * @param text - строка где производится поиск
-         * @param tag - тег чьи вхождения ищим
-         * @param coordinate1-2 - диапозон поиска
-         * 
-         * @return список найденных тегов в заданном диапозоне
-         */
-        public static List<int> searchAllOccurrences(string text, string tag,  int cooridinate1, int coordinate2)
-        {
-            
-            List<int> coordinateTag = searchAllOccurrences(text, tag);
-            List<int> results = new List<int>();
-
-            for(int i = 0; i < coordinateTag.Count; i++)
-            {
-                if (coordinateTag[i] > cooridinate1 && coordinateTag[i] < coordinate2)
-                {
-                        results.Add(coordinateTag[i]);
-                }
-            }
-           
-            return results;
-        }
         public static Uri FixUri(string brokenUri)
         {
             string newURI = string.Empty;
