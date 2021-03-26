@@ -59,16 +59,13 @@ D:\Download\Converter (1)\Converter\Converter\bin\Debug\NReco.PdfGenerator.xml
 D:\Download\Converter (1)\Converter\Converter\bin\Debug\Select.HtmlToPdf.xml
 D:\Download\Converter (1)\Converter\Converter\bin\Debug\System.Diagnostics.DiagnosticSource.xml
 D:\Download\Converter (1)\Converter\Converter\bin\Debug\Select.Html.dep
-D:\Download\Converter (1)\Converter\Converter\obj\Debug\Converter.csprojAssemblyReference.cache
 D:\Download\Converter (1)\Converter\Converter\obj\Debug\Converter.csproj.CoreCompileInputs.cache
 D:\Download\Converter (1)\Converter\Converter\obj\Debug\Converter.csproj.CopyComplete
 D:\Download\Converter (1)\Converter\Converter\obj\Debug\Converter.exe
 D:\Download\Converter (1)\Converter\Converter\obj\Debug\Converter.pdb
 D:\Download\Converter (1)\Converter\Converter\bin\Debug\Fizzler.dll
-D:\Download\Converter (1)\Converter\Converter\bin\Debug\Fizzler.pdb
 D:\Download\Converter (1)\Converter\Converter\bin\Debug\Fizzler.Systems.HtmlAgilityPack.dll
 D:\Download\Converter (1)\Converter\Converter\bin\Debug\HtmlAgilityPack.dll
-D:\Download\Converter (1)\Converter\Converter\bin\Debug\Fizzler.Systems.HtmlAgilityPack.pdb
 D:\Download\Converter (1)\Converter\Converter\bin\Debug\HtmlAgilityPack.pdb
 D:\Download\Converter (1)\Converter\Converter\bin\Debug\HtmlAgilityPack.xml
 D:\Download\Converter (1)\Converter\Converter\bin\Debug\MaterialDesignColors.dll
@@ -76,3 +73,5 @@ D:\Download\Converter (1)\Converter\Converter\bin\Debug\MaterialDesignThemes.Wpf
 D:\Download\Converter (1)\Converter\Converter\bin\Debug\MaterialDesignColors.pdb
 D:\Download\Converter (1)\Converter\Converter\bin\Debug\MaterialDesignThemes.Wpf.pdb
 D:\Download\Converter (1)\Converter\Converter\bin\Debug\MaterialDesignThemes.Wpf.xml
+D:\Download\Converter (1)\Converter\Converter\bin\Debug\Fizzler.pdb
+D:\Download\Converter (1)\Converter\Converter\obj\Debug\Converter.csprojAssemblyReference.cache

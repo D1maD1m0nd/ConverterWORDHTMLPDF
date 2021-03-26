@@ -1,21 +1,30 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing.Imaging;
 using System.IO;
+using System.IO.Packaging;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using DocumentFormat.OpenXml.Packaging;
-using OpenXmlPowerTools;
 using EO.Pdf;
-
+using OpenXmlPowerTools;
+using Fizzler.Systems.HtmlAgilityPack;
+using HtmlAgilityPack;
 
 namespace Converter
 {
-  
+    class CoordinateTag
+    {
+        public List<int> start;
+        public List<int> end;
+    }
     class Program
     {
         static void Main(string[] args)
         {
-            var fileInfo = new FileInfo(@"D:\Download\Отчет комитенту №44 от 02.03.2021.docx");
+            var fileInfo = new FileInfo(@"D:\Download\Инструкция по работе с сайтом.docx");
             string fullFilePath = fileInfo.FullName;
             string htmlText = string.Empty;
             try
@@ -34,50 +43,50 @@ namespace Converter
                 }
             }
 
-            var html = new HtmlAgilityPack.HtmlDocument();
-            html.LoadHtml(htmlText);
-            var document = html.DocumentNode;
-
-            //ищем таблицу с счет фактурой
-            var node = searchNode(document, "Счет-фактура", "//div");
-            if(node != null)
-            {
-                //вставляем класс table что бы ее перевернуть
-                insertClass(node, "tablec", "//table", "Сумма", true);
-                
-                node = searchNode(node, "Сумма", "//table");
-                if(node != null)
-                {
-                   
-                //    //меняем шрифт
-                //    insertClass(node, "changeTextIntable", "//span");
-                //    //меняем размер ячейки и их обводку
-                //    insertClass(node, "changeTdItem", "//td");
-                }
-                    
-            }
-            //deleteTag(document, "//table", "br");
-            htmlText = document.InnerHtml;
+                htmlText = changeInvoiceFact(htmlText);
 
             using (MemoryStream ms = new MemoryStream())
             {
-                var a = HtmlToPdf.ConvertHtml(htmlText.ToString(), "file99.pdf");
+                var a = EO.Pdf.HtmlToPdf.ConvertHtml(htmlText.ToString(), "file99.pdf");
                 var c = ms.ToArray();
-       
+
 
             }
 
             var writer = File.CreateText("html2.html");
-            
-            
-           
+
+
+
             writer.WriteLine(htmlText);
             writer.Dispose();
             Console.ReadKey();
 
-            
-        }
 
+        }
+        private static string changeInvoiceFact(string htmlText)
+        {
+            var html = new HtmlAgilityPack.HtmlDocument();
+            html.LoadHtml(htmlText);
+            var document = html.DocumentNode;
+            //ищем таблицу с счет фактурой
+            var node = searchNode(document, "Счет-фактура", "div");
+            if (node != null)
+            {
+                //вставляем класс table что бы ее перевернуть
+                insertClass(node, "table", "table", "Сумма", true);
+                node = searchNode(node, "Сумма", "table");
+                if (node != null)
+                {
+                    //меняем шрифт
+                    insertClass(node, "changeTextIntable", "span");
+                    //меняем размер ячейки и их обводку
+                    insertClass(node, "changeTdItem", "td");
+                }
+
+            }
+            deleteTag(document, "table", "br");
+            return document.OuterHtml;
+        }
         /**
          * Ищет экземпляр Node в document по
          * @param document - исходный объект документа
@@ -87,20 +96,17 @@ namespace Converter
          * 
          * @return {HtmlAgilityPack.HtmlNode} возвращает найденный экземпляр HtmlNode
          */
-        private static HtmlAgilityPack.HtmlNode searchNode(HtmlAgilityPack.HtmlNode document, string keySearchValue, string path)
+        private static HtmlAgilityPack.HtmlNode searchNode(HtmlAgilityPack.HtmlNode document, string keySearchValue, string tag)
         {
-            var htmlArr = document.SelectNodes(path);
-            if(htmlArr != null)
+            var htmlArr = document.QuerySelectorAll(tag);
+
+            foreach (var item in htmlArr)
             {
-                foreach (var item in htmlArr)
+                if (item.InnerText.IndexOf(keySearchValue) != -1)
                 {
-                    if (item.InnerText.IndexOf(keySearchValue) != -1)
-                    {
-                        return item;
-                    }
+                    return item;
                 }
             }
-            
             return null;
         }
         /**
@@ -110,20 +116,15 @@ namespace Converter
          * @param tag - тег по которому необходимо построить связь
          * @param delTag - тег, который необходимо удалить
          */
-        private static void deleteTag(HtmlAgilityPack.HtmlNode node, string path, string delTag)
+        private static void deleteTag(HtmlAgilityPack.HtmlNode node, string tag, string delTag)
         {
-            var htmlArr = node.SelectNodes(path);
-            if(htmlArr != null)
+            var htmlArr = node.QuerySelectorAll(tag).ToArray();
+            foreach (var item in htmlArr)
             {
-                foreach (var item in htmlArr)
-                {
-                    item.OuterHtml.Replace(delTag, string.Empty);
-                }
+                item.OuterHtml.Replace(delTag, string.Empty);
             }
-            
-            
-        }
 
+        }
         /**
          * Вставляет в тег определенный класс
          * 
@@ -133,23 +134,23 @@ namespace Converter
          *@param exp выражение, по которому необходимо найти элемент
          *@param флаг указывающий на количество проходов по массиву
          */
-        private static void insertClass(HtmlAgilityPack.HtmlNode node, string currentClass, string path, string exp = null, bool oneIter = false) {
-            var htmlArr = node.SelectNodes(path);
-            if(htmlArr != null)
+        private static void insertClass(HtmlAgilityPack.HtmlNode node, string currentClass, string tag, string exp = null, bool oneIter = false)
+        {
+            var htmlArr = node.QuerySelectorAll(tag).ToArray();
+
+            foreach (var item in htmlArr)
             {
-                foreach (var item in htmlArr)
+                if (exp == null || item.OuterHtml.IndexOf(exp) != -1)
                 {
-                    if (exp == null || item.OuterHtml.IndexOf(exp) != -1)
-                    {
-                        
-                        item.Attributes["class"].Value = currentClass;
-                        Console.WriteLine(item.OuterHtml);
-                        if (oneIter)
-                            return;
-                    }
+                    item.Attributes["class"].Value = currentClass;
+                    Console.WriteLine(item.OuterHtml);
+                    if (oneIter)
+                        return;
 
                 }
+
             }
+
         }
 
         private static Uri FixUri(string brokenUri)
@@ -198,11 +199,11 @@ namespace Converter
                             AdditionalCss = " body { width: 21cm; margin: 1cm auto; max-width: 21cm; padding: 1cm; }" +
                                 "img {page-break-before: auto; page-break-after: auto; page-break-inside: avoid; position: relative; }" +
                                 "br {page-break-before: always;} .changeTextIntable{font-size:14px;}  .changeTdItem{border:1px solid; height: auto; padding-top:6px; vertical-align:middlle;}" +
-                                ".tablec {transform: rotate(-90deg);" +
-                                    "margin-top:20px;" +
-                                    "margin-bottom:20px;" +
+                                ".table {transform: rotate(-90deg);" +
+                                    "margin-top:36px;" +
+                                    "margin-bottom:25px;" +
                                     "border-collapse: collapse;" +
-                                    "height: 30cm; }" 
+                                    "height: 29cm; }"
                                 + $"{spanElem}",
 
                             PageTitle = pageTitle,
@@ -277,3 +278,4 @@ namespace Converter
         }
     }
 }
+
