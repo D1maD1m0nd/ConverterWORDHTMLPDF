@@ -24,7 +24,7 @@ namespace Converter
     {
         static void Main(string[] args)
         {
-            var fileInfo = new FileInfo(@"D:\Download\Инструкция по работе с сайтом.docx");
+            var fileInfo = new FileInfo(@"D:\Download\Счет (3).docx");
             string fullFilePath = fileInfo.FullName;
             string htmlText = string.Empty;
             try
@@ -42,7 +42,6 @@ namespace Converter
                     htmlText = ParseDOCX(fileInfo);
                 }
             }
-
                 htmlText = changeInvoiceFact(htmlText);
 
             using (MemoryStream ms = new MemoryStream())
@@ -200,8 +199,8 @@ namespace Converter
                                 "img {page-break-before: auto; page-break-after: auto; page-break-inside: avoid; position: relative; }" +
                                 "br {page-break-before: always;} .changeTextIntable{font-size:14px;}  .changeTdItem{border:1px solid; height: auto; padding-top:6px; vertical-align:middlle;}" +
                                 ".table {transform: rotate(-90deg);" +
-                                    "margin-top:36px;" +
-                                    "margin-bottom:25px;" +
+                                    "margin-top:18px;" +
+                                    "margin-bottom:16px;" +
                                     "border-collapse: collapse;" +
                                     "height: 29cm; }"
                                 + $"{spanElem}",
