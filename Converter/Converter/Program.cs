@@ -15,16 +15,12 @@ using HtmlAgilityPack;
 
 namespace Converter
 {
-    class CoordinateTag
-    {
-        public List<int> start;
-        public List<int> end;
-    }
+ 
     class Program
     {
         static void Main(string[] args)
         {
-            var fileInfo = new FileInfo(@"D:\Download\Счет (3).docx");
+            var fileInfo = new FileInfo(@"C:\Users\DimaD1m0nd\Desktop\тесты документов\Отчет комитенту №242 от 11.03.2021.docx");
             string fullFilePath = fileInfo.FullName;
             string htmlText = string.Empty;
             try
@@ -46,7 +42,7 @@ namespace Converter
 
             using (MemoryStream ms = new MemoryStream())
             {
-                var a = EO.Pdf.HtmlToPdf.ConvertHtml(htmlText.ToString(), "file99.pdf");
+                var a = EO.Pdf.HtmlToPdf.ConvertHtml(htmlText.ToString(), @"C:\Users\DimaD1m0nd\Desktop\тесты документов\file999.pdf");
                 var c = ms.ToArray();
 
 
@@ -195,7 +191,7 @@ namespace Converter
 
                         WmlToHtmlConverterSettings settings = new WmlToHtmlConverterSettings()
                         {
-                            AdditionalCss = " body { width: 21cm; margin: 1cm auto; max-width: 21cm; padding: 1cm; }" +
+                            AdditionalCss = " body { width: 23cm; margin: 1cm auto; max-width: 23cm; padding: 1cm; }" +
                                 "img {page-break-before: auto; page-break-after: auto; page-break-inside: avoid; position: relative; }" +
                                 "br {page-break-before: always;} .changeTextIntable{font-size:14px;}  .changeTdItem{border:1px solid; height: auto; padding-top:6px; vertical-align:middlle;}" +
                                 ".table {transform: rotate(-90deg);" +
