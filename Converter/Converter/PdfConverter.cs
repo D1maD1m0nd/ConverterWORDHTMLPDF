@@ -1,26 +1,56 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing.Imaging;
 using System.IO;
-using System.IO.Packaging;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 using DocumentFormat.OpenXml.Packaging;
-using EO.Pdf;
 using OpenXmlPowerTools;
 using Fizzler.Systems.HtmlAgilityPack;
-using HtmlAgilityPack;
 
 namespace Converter
 {
- 
-    class Program
+    class PdfConverter
     {
-        static void Main(string[] args)
+        /**
+         * Конвертирует переданный массив байт doc Документа и конвертирует его в пдф
+         * 
+         * @param bytes - массив байт док документа
+         * @param pathSaveFile - путь куда необходимо сохранить
+         */
+        public byte[] Convert(byte[] bytes, string pathSaveFile)
         {
-            var fileInfo = new FileInfo(@"C:\Users\DimaD1m0nd\Desktop\тесты документов\Отчет комитенту №242 от 11.03.2021.docx");
+            
+            string htmlText = ParseDOCX(bytes);
+
+
+            htmlText = changeInvoiceFact(htmlText);
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                EO.Pdf.HtmlToPdf.ConvertHtml(htmlText, ms);
+                return ms.ToArray();
+            }
+        }
+        /**
+         * Конвертирует переданный путь до doc Документа и конвертирует его в пдф
+         * 
+         * @param path - путь до .doc документа
+         * @param pathSaveFile - путь куда необходимо сохранить
+         */
+        public void Convert(string path, string pathSaveFile)
+        {
+            var fileInfo = new FileInfo(path);
+            
+            if (!fileInfo.Exists)
+            {
+                new FileNotFoundException();
+            }
+            if(fileInfo.Extension != ".docx" && fileInfo.Extension != ".docx")
+            {
+                new FileFormatException();
+            }
+
+
             string fullFilePath = fileInfo.FullName;
             string htmlText = string.Empty;
             try
@@ -38,27 +68,23 @@ namespace Converter
                     htmlText = ParseDOCX(fileInfo);
                 }
             }
-                htmlText = changeInvoiceFact(htmlText);
-
-            using (MemoryStream ms = new MemoryStream())
-            {
-                var a = EO.Pdf.HtmlToPdf.ConvertHtml(htmlText.ToString(), @"C:\Users\DimaD1m0nd\Desktop\тесты документов\file999.pdf");
-                var c = ms.ToArray();
-
-
-            }
-
-            var writer = File.CreateText("html2.html");
-
-
-
+            htmlText = changeInvoiceFact(htmlText);
+            EO.Pdf.HtmlToPdf.ConvertHtml(htmlText.ToString(), pathSaveFile);
+            var writer = File.CreateText(pathSaveFile.Replace(".pdf", ".html"));
             writer.WriteLine(htmlText);
             writer.Dispose();
             Console.ReadKey();
 
 
         }
-        private static string changeInvoiceFact(string htmlText)
+        /**
+         * Альбомная ореинтация под документ счет фактура
+         * 
+         * @param htmlText - html строка, в которйо необходимо найти данные
+         * 
+         * @return {string} - возвращает измененную html строку с страницей алтбомного формата
+         */
+        private  string changeInvoiceFact(string htmlText)
         {
             var html = new HtmlAgilityPack.HtmlDocument();
             html.LoadHtml(htmlText);
@@ -91,7 +117,7 @@ namespace Converter
          * 
          * @return {HtmlAgilityPack.HtmlNode} возвращает найденный экземпляр HtmlNode
          */
-        private static HtmlAgilityPack.HtmlNode searchNode(HtmlAgilityPack.HtmlNode document, string keySearchValue, string tag)
+        private  HtmlAgilityPack.HtmlNode searchNode(HtmlAgilityPack.HtmlNode document, string keySearchValue, string tag)
         {
             var htmlArr = document.QuerySelectorAll(tag);
 
@@ -111,7 +137,7 @@ namespace Converter
          * @param tag - тег по которому необходимо построить связь
          * @param delTag - тег, который необходимо удалить
          */
-        private static void deleteTag(HtmlAgilityPack.HtmlNode node, string tag, string delTag)
+        private  void deleteTag(HtmlAgilityPack.HtmlNode node, string tag, string delTag)
         {
             var htmlArr = node.QuerySelectorAll(tag).ToArray();
             foreach (var item in htmlArr)
@@ -129,7 +155,7 @@ namespace Converter
          *@param exp выражение, по которому необходимо найти элемент
          *@param флаг указывающий на количество проходов по массиву
          */
-        private static void insertClass(HtmlAgilityPack.HtmlNode node, string currentClass, string tag, string exp = null, bool oneIter = false)
+        private  void insertClass(HtmlAgilityPack.HtmlNode node, string currentClass, string tag, string exp = null, bool oneIter = false)
         {
             var htmlArr = node.QuerySelectorAll(tag).ToArray();
 
@@ -138,7 +164,6 @@ namespace Converter
                 if (exp == null || item.OuterHtml.IndexOf(exp) != -1)
                 {
                     item.Attributes["class"].Value = currentClass;
-                    Console.WriteLine(item.OuterHtml);
                     if (oneIter)
                         return;
 
@@ -148,7 +173,7 @@ namespace Converter
 
         }
 
-        private static Uri FixUri(string brokenUri)
+        private  Uri FixUri(string brokenUri)
         {
             string newURI = string.Empty;
             if (brokenUri.Contains("mailto:"))
@@ -163,11 +188,116 @@ namespace Converter
             }
             return new Uri(newURI);
         }
-
-        private static string ParseDOCX(FileInfo fileInfo)
+        private string ParseDOCX(byte[] byteArray, string nameDoc = "Name", string fullName = "fullName")
         {
             try
             {
+                using (MemoryStream memoryStream = new MemoryStream())
+                {
+                    memoryStream.Write(byteArray, 0, byteArray.Length);
+                    using (WordprocessingDocument wDoc =
+                                                WordprocessingDocument.Open(memoryStream, true))
+                    {
+                        int imageCounter = 0;
+                        var pageTitle = nameDoc;
+                        var part = wDoc.CoreFilePropertiesPart;
+                        if (part != null)
+                            pageTitle = (string)part.GetXDocument()
+                                                    .Descendants(DC.title)
+                                                    .FirstOrDefault() ?? fullName;
+                        string spanElem = "";
+                        //обработка шапки для изменения наложения элементов
+                        for (int i = 0; i < 10; i++)
+                        {
+                            spanElem += $"span.pt-a0-00000{i}" + "{margin-right:40px;}";
+                        }
+
+                        WmlToHtmlConverterSettings settings = new WmlToHtmlConverterSettings()
+                        {
+                            AdditionalCss = " body { width: 23cm; margin: 1cm auto; max-width: 23cm; padding: 1cm; }" +
+                                "img {page-break-before: auto; page-break-after: auto; page-break-inside: avoid; position: relative; }" +
+                                "br {page-break-before: always;} .changeTextIntable{font-size:14px;}  .changeTdItem{border:1px solid; height: auto; padding-top:6px; vertical-align:middlle;}" +
+                                ".table {transform: rotate(-90deg);" +
+                                    "margin-top:12px;" +
+                                    "margin-bottom:5px;" +
+                                    "border-collapse: collapse;" +
+                                    "height: 31cm; }"
+                                + $"{spanElem}",
+
+                            PageTitle = pageTitle,
+                            FabricateCssClasses = true,
+                            CssClassPrefix = "pt-",
+                            RestrictToSupportedLanguages = false,
+                            RestrictToSupportedNumberingFormats = false,
+                            ImageHandler = imageInfo =>
+                            {
+                                ++imageCounter;
+                                string extension = imageInfo.ContentType.Split('/')[1].ToLower();
+                                ImageFormat imageFormat = null;
+                                if (extension == "png") imageFormat = ImageFormat.Png;
+                                else if (extension == "gif") imageFormat = ImageFormat.Gif;
+                                else if (extension == "bmp") imageFormat = ImageFormat.Bmp;
+                                else if (extension == "jpeg") imageFormat = ImageFormat.Jpeg;
+                                else if (extension == "tiff")
+                                {
+                                    extension = "gif";
+                                    imageFormat = ImageFormat.Gif;
+                                }
+                                else if (extension == "x-wmf")
+                                {
+                                    extension = "wmf";
+                                    imageFormat = ImageFormat.Wmf;
+                                }
+
+                                if (imageFormat == null) return null;
+
+                                string base64 = null;
+                                try
+                                {
+                                    using (MemoryStream ms = new MemoryStream())
+                                    {
+                                        imageInfo.Bitmap.Save(ms, imageFormat);
+                                        var ba = ms.ToArray();
+                                        base64 = System.Convert.ToBase64String(ba);
+                                    }
+                                }
+                                catch (System.Runtime.InteropServices.ExternalException)
+                                { return null; }
+
+                                ImageFormat format = imageInfo.Bitmap.RawFormat;
+                                ImageCodecInfo codec = ImageCodecInfo.GetImageDecoders()
+                                                            .First(c => c.FormatID == format.Guid);
+                                string mimeType = codec.MimeType;
+
+                                string imageSource =
+                                        string.Format("data:{0};base64,{1}", mimeType, base64);
+
+                                XElement img = new XElement(Xhtml.img,
+                                        new XAttribute(NoNamespace.src, imageSource),
+                                        imageInfo.ImgStyleAttribute,
+                                        imageInfo.AltText != null ?
+                                            new XAttribute(NoNamespace.alt, imageInfo.AltText) : null);
+                                return img;
+                            }
+                        };
+
+                        XElement htmlElement = WmlToHtmlConverter.ConvertToHtml(wDoc, settings);
+                        var html = new XDocument(new XDocumentType("html", null, null, null),
+                                                                                    htmlElement);
+                        var htmlString = html.ToString(SaveOptions.DisableFormatting);
+                        return htmlString;
+                    }
+                }
+            }
+            catch
+            {
+                return "The file is either open, please close it or contains corrupt data";
+            }
+        }
+        private  string ParseDOCX(FileInfo fileInfo)
+        {
+            try
+            {   
                 byte[] byteArray = File.ReadAllBytes(fileInfo.FullName);
                 using (MemoryStream memoryStream = new MemoryStream())
                 {
@@ -195,10 +325,10 @@ namespace Converter
                                 "img {page-break-before: auto; page-break-after: auto; page-break-inside: avoid; position: relative; }" +
                                 "br {page-break-before: always;} .changeTextIntable{font-size:14px;}  .changeTdItem{border:1px solid; height: auto; padding-top:6px; vertical-align:middlle;}" +
                                 ".table {transform: rotate(-90deg);" +
-                                    "margin-top:18px;" +
-                                    "margin-bottom:16px;" +
+                                    "margin-top:12px;" +
+                                    "margin-bottom:5px;" +
                                     "border-collapse: collapse;" +
-                                    "height: 29cm; }"
+                                    "height: 31cm; }"
                                 + $"{spanElem}",
 
                             PageTitle = pageTitle,
@@ -273,4 +403,3 @@ namespace Converter
         }
     }
 }
-
