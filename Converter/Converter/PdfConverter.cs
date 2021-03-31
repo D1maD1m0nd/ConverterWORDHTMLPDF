@@ -14,9 +14,18 @@ namespace Converter
         private string CSS;
         private string HTML;
         private byte[] bytePdfDocument;
+        private string directory;
 
+        public string getDirectory()
+        {
+            return directory;
+        }
 
-
+        public PdfConverter setDirectory(string directory)
+        {
+            this.directory = directory;
+            return this;
+        }
         public byte[] getBytePdfDocument()
         {
             return bytePdfDocument;
