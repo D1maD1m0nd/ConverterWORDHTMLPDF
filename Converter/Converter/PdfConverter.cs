@@ -11,6 +11,44 @@ namespace Converter
 {
     class PdfConverter
     {
+        private string CSS;
+        private string HTML;
+        private byte[] bytePdfDocument;
+
+
+
+        public byte[] getBytePdfDocument()
+        {
+            return bytePdfDocument;
+        }
+        public PdfConverter setBytePdfDocument(byte[] bytePdfDocument)
+        {
+            this.bytePdfDocument = bytePdfDocument;
+            return this;
+        }
+        public PdfConverter setCSS(string CSS)
+        {
+            this.CSS = CSS;
+            return this;
+        }
+
+        public string getCSS()
+        {
+            return CSS;
+        }
+        
+        public PdfConverter setHTML(string HTML)
+        {
+            this.HTML = HTML;
+            return this;
+        }
+
+        public string getCSS(string HTML)
+        {
+            return CSS;
+        }
+        
+
         /**
          * Конвертирует переданный массив байт doc Документа и конвертирует его в пдф
          * 
@@ -20,14 +58,14 @@ namespace Converter
         public byte[] Convert(byte[] bytes, string pathSaveFile)
         {
             
-            string htmlText = ParseDOCX(bytes);
+            HTML = ParseDOCX(bytes);
 
 
-            htmlText = changeInvoiceFact(htmlText);
+            changeInvoiceFact();
 
             using (MemoryStream ms = new MemoryStream())
             {
-                EO.Pdf.HtmlToPdf.ConvertHtml(htmlText, ms);
+                EO.Pdf.HtmlToPdf.ConvertHtml(HTML, ms);
                 return ms.ToArray();
             }
         }
@@ -52,10 +90,10 @@ namespace Converter
 
 
             string fullFilePath = fileInfo.FullName;
-            string htmlText = string.Empty;
+           
             try
             {
-                htmlText = ParseDOCX(fileInfo);
+                HTML = ParseDOCX(fileInfo);
             }
             catch (OpenXmlPackageException e)
             {
@@ -65,17 +103,24 @@ namespace Converter
                     {
                         UriFixer.FixInvalidUri(fs, brokenUri => FixUri(brokenUri));
                     }
-                    htmlText = ParseDOCX(fileInfo);
+                    HTML = ParseDOCX(fileInfo);
                 }
             }
-            htmlText = changeInvoiceFact(htmlText);
-            EO.Pdf.HtmlToPdf.ConvertHtml(htmlText.ToString(), pathSaveFile);
-            var writer = File.CreateText(pathSaveFile.Replace(".pdf", ".html"));
-            writer.WriteLine(htmlText);
-            writer.Dispose();
+            changeInvoiceFact().saveDocument(pathSaveFile).writeHtmlFile(pathSaveFile);
             Console.ReadKey();
 
-
+        }
+        public PdfConverter writeHtmlFile(string pathSaveFile)
+        {
+            var writer = File.CreateText(pathSaveFile.Replace(".pdf", ".html"));
+            writer.WriteLine(HTML);
+            writer.Dispose();
+            return this;
+        }
+        public PdfConverter saveDocument(String pathSaveFile)
+        {
+            EO.Pdf.HtmlToPdf.ConvertHtml(HTML, pathSaveFile);
+            return this;
         }
         /**
          * Альбомная ореинтация под документ счет фактура
@@ -84,10 +129,10 @@ namespace Converter
          * 
          * @return {string} - возвращает измененную html строку с страницей алтбомного формата
          */
-        private  string changeInvoiceFact(string htmlText)
+        private  PdfConverter changeInvoiceFact()
         {
             var html = new HtmlAgilityPack.HtmlDocument();
-            html.LoadHtml(htmlText);
+            html.LoadHtml(HTML);
             var document = html.DocumentNode;
             //ищем таблицу с счет фактурой
             var node = searchNode(document, "Счет-фактура", "div");
@@ -106,7 +151,8 @@ namespace Converter
 
             }
             deleteTag(document, "table", "br");
-            return document.OuterHtml;
+            HTML = document.OuterHtml;
+            return this;
         }
         /**
          * Ищет экземпляр Node в document по
@@ -137,14 +183,14 @@ namespace Converter
          * @param tag - тег по которому необходимо построить связь
          * @param delTag - тег, который необходимо удалить
          */
-        private  void deleteTag(HtmlAgilityPack.HtmlNode node, string tag, string delTag)
+        private  PdfConverter deleteTag(HtmlAgilityPack.HtmlNode node, string tag, string delTag)
         {
             var htmlArr = node.QuerySelectorAll(tag).ToArray();
             foreach (var item in htmlArr)
             {
                 item.OuterHtml.Replace(delTag, string.Empty);
             }
-
+            return this;
         }
         /**
          * Вставляет в тег определенный класс
@@ -155,7 +201,7 @@ namespace Converter
          *@param exp выражение, по которому необходимо найти элемент
          *@param флаг указывающий на количество проходов по массиву
          */
-        private  void insertClass(HtmlAgilityPack.HtmlNode node, string currentClass, string tag, string exp = null, bool oneIter = false)
+        private PdfConverter insertClass(HtmlAgilityPack.HtmlNode node, string currentClass, string tag, string exp = null, bool oneIter = false)
         {
             var htmlArr = node.QuerySelectorAll(tag).ToArray();
 
@@ -165,11 +211,11 @@ namespace Converter
                 {
                     item.Attributes["class"].Value = currentClass;
                     if (oneIter)
-                        return;
-
+                        return this;
                 }
 
             }
+            return this;
 
         }
 
@@ -318,19 +364,10 @@ namespace Converter
                         {
                             spanElem += $"span.pt-a0-00000{i}" + "{margin-right:40px;}";
                         }
-
+                        CSS += spanElem;
                         WmlToHtmlConverterSettings settings = new WmlToHtmlConverterSettings()
                         {
-                            AdditionalCss = " body { width: 23cm; margin: 1cm auto; max-width: 23cm; padding: 1cm; }" +
-                                "img {page-break-before: auto; page-break-after: auto; page-break-inside: avoid; position: relative; }" +
-                                "br {page-break-before: always;} .changeTextIntable{font-size:14px;}  .changeTdItem{border:1px solid; height: auto; padding-top:6px; vertical-align:middlle;}" +
-                                ".table {transform: rotate(-90deg);" +
-                                    "margin-top:12px;" +
-                                    "margin-bottom:5px;" +
-                                    "border-collapse: collapse;" +
-                                    "height: 31cm; }"
-                                + $"{spanElem}",
-
+                            AdditionalCss = CSS,
                             PageTitle = pageTitle,
                             FabricateCssClasses = true,
                             CssClassPrefix = "pt-",
