@@ -6,6 +6,12 @@ using System.Xml.Linq;
 using DocumentFormat.OpenXml.Packaging;
 using OpenXmlPowerTools;
 using Fizzler.Systems.HtmlAgilityPack;
+using System.Collections.Generic;
+using PdfSharp;
+using TheArtOfDev.HtmlRenderer.PdfSharp;
+using PdfSharp.Pdf;
+using HiQPdf;
+using PdfSharp.Pdf.IO;
 
 namespace Converter
 {
@@ -45,7 +51,7 @@ namespace Converter
 		{
 			return CSS;
 		}
-		
+
 		public PdfConverter setHTML(string HTML)
 		{
 			this.HTML = HTML;
@@ -56,7 +62,7 @@ namespace Converter
 		{
 			return CSS;
 		}
-		
+
 
 		/**
 		 * Конвертирует переданный массив байт doc Документа и конвертирует его в пдф
@@ -66,7 +72,7 @@ namespace Converter
 		 */
 		public byte[] Convert(byte[] bytes, string pathSaveFile)
 		{
-			
+
 			HTML = ParseDOCX(bytes);
 
 
@@ -87,19 +93,19 @@ namespace Converter
 		public void Convert(string path, string pathSaveFile)
 		{
 			var fileInfo = new FileInfo(path);
-			
+
 			if (!fileInfo.Exists)
 			{
 				new FileNotFoundException();
 			}
-			if(fileInfo.Extension != ".docx" && fileInfo.Extension != ".docx")
+			if (fileInfo.Extension != ".docx" && fileInfo.Extension != ".docx")
 			{
 				new FileFormatException();
 			}
 
 
 			string fullFilePath = fileInfo.FullName;
-		   
+
 			try
 			{
 				HTML = ParseDOCX(fileInfo);
@@ -115,7 +121,7 @@ namespace Converter
 					HTML = ParseDOCX(fileInfo);
 				}
 			}
-			changeInvoiceFact().saveDocument(pathSaveFile).writeHtmlFile(pathSaveFile);
+			changeInvoiceFact().saveDocument(pathSaveFile).writeHtmlFile(pathSaveFile).concatPdfDoc();
 			Console.ReadKey();
 
 		}
@@ -128,7 +134,40 @@ namespace Converter
 		}
 		public PdfConverter saveDocument(String pathSaveFile)
 		{
-			EO.Pdf.HtmlToPdf.ConvertHtml(HTML, pathSaveFile);
+			//SelectPdf.HtmlToPdf converter = new SelectPdf.HtmlToPdf();
+			//         SelectPdf.PdfDocument doc = converter.ConvertHtmlString(HTML);
+			//Console.WriteLine(doc.Pages.Count);
+
+			//doc.Pages[0].Orientation = SelectPdf.PdfPageOrientation.Landscape;
+
+			//Console.WriteLine(doc.Pages[0].PageSize.Height + " " + doc.Pages[0].PageSize.Width);
+			//doc.Save(pathSaveFile);
+			//doc.Close();
+			HtmlToPdf htmlToPdfConverter = new HtmlToPdf();
+			htmlToPdfConverter.Document.PageOrientation = PdfPageOrientation.Landscape;
+			// convert HTML Code to a PDF file
+			htmlToPdfConverter.ConvertHtmlToFile(HTML, null, pathSaveFile);
+			return this;
+		}
+		public PdfConverter concatPdfDoc()
+        {
+			using (PdfDocument one = PdfReader.Open(@"D:\Desktop\тесты документов\file.pdf", PdfDocumentOpenMode.Import))
+			using (PdfDocument two = PdfReader.Open(@"D:\Desktop\тесты документов\file1.pdf", PdfDocumentOpenMode.Import))
+			using (PdfDocument outPdf = new PdfDocument())
+			{
+				CopyPages(one, outPdf);
+				CopyPages(two, outPdf);
+
+				outPdf.Save("file1and2.pdf");
+			}
+
+			void CopyPages(PdfDocument from, PdfDocument to)
+			{
+				for (int i = 0; i < from.PageCount; i++)
+				{
+					to.AddPage(from.Pages[i]);
+				}
+			}
 			return this;
 		}
 		/**
@@ -138,7 +177,7 @@ namespace Converter
 		 * 
 		 * @return {string} - возвращает измененную html строку с страницей алтбомного формата
 		 */
-		private  PdfConverter changeInvoiceFact()
+			private PdfConverter changeInvoiceFact()
 		{
 			var html = new HtmlAgilityPack.HtmlDocument();
 			html.LoadHtml(HTML);
@@ -149,24 +188,18 @@ namespace Converter
 			{
 				var tableNode = node;
 				node = searchNode(node, "Сумма", "table");
+
+			
 				if (node != null)
 				{
 					//меняем шрифт
 					// меняем размер ячейки и их обводку
 					int lenTh = getLengthTag(node, "tr");
-					if (lenTh <= 5)
-					{
-						insertClass(tableNode, "tableFiveElem", "table", true);
 
-					}
-					else if (lenTh >= 6)
-					{
-						insertClass(tableNode, "table", "table", true);
-
-					}
+					insertClass(tableNode, "table", "table", true);
 					insertClass(node, "changeTdItem", "td");
 					insertClass(node, "changeTextIntable", "span");
-					
+
 
 
 					//меняем размерность ячеек
@@ -186,7 +219,21 @@ namespace Converter
 		 * 
 		 * @return {HtmlAgilityPack.HtmlNode} возвращает найденный экземпляр HtmlNode
 		 */
-		private  HtmlAgilityPack.HtmlNode searchNode(HtmlAgilityPack.HtmlNode document, string keySearchValue, string tag)
+		private List<HtmlAgilityPack.HtmlNode> searchNode(HtmlAgilityPack.HtmlNode document, string tag)
+		{
+			return document.QuerySelectorAll(tag).ToList();
+		}
+
+		/**
+		 * Ищет экземпляр Node в document по
+		 * @param document - исходный объект документа
+		 * @param keySearchValue -  текстовый ключ, по которому необходимо найти элемент, по типу в теге содержится слово счет фактура
+		 * @param tag - тег, чей объект необходимо найти, указывать нужно без дополнительных знаков, 
+		 * пример правильного запроса QuerySelectorAll("br")
+		 * 
+		 * @return {HtmlAgilityPack.HtmlNode} возвращает найденный экземпляр HtmlNode
+		 */
+		private HtmlAgilityPack.HtmlNode searchNode(HtmlAgilityPack.HtmlNode document, string keySearchValue, string tag)
 		{
 			var htmlArr = document.QuerySelectorAll(tag);
 
@@ -201,9 +248,9 @@ namespace Converter
 		}
 
 		private int getLengthTag(HtmlAgilityPack.HtmlNode node, string tag)
-        {
+		{
 			return node.QuerySelectorAll(tag).ToArray().Length;
-        }
+		}
 
 		/**
 		 * Удаляет тег в определенной свяи
@@ -212,7 +259,7 @@ namespace Converter
 		 * @param tag - тег по которому необходимо построить связь
 		 * @param delTag - тег, который необходимо удалить
 		 */
-		private  PdfConverter deleteTag(HtmlAgilityPack.HtmlNode node, string tag, string delTag)
+		private PdfConverter deleteTag(HtmlAgilityPack.HtmlNode node, string tag, string delTag)
 		{
 			var htmlArr = node.QuerySelectorAll(tag);
 			foreach (var item in htmlArr)
@@ -232,23 +279,24 @@ namespace Converter
 		 */
 		private PdfConverter insertClass(HtmlAgilityPack.HtmlNode node, string currentClass, string tag, bool firstElem = false)
 		{
-			var nodes= node.QuerySelectorAll(tag);
+			var nodes = node.QuerySelectorAll(tag);
 			if (nodes == null)
 				return this;
 
-			if (firstElem) {
+			if (firstElem)
+			{
 				nodes.First().Attributes["class"].Value = currentClass;
 				return this;
 			}
 
-			foreach(var item in nodes)
+			foreach (var item in nodes)
 				item.Attributes["class"].Value = currentClass;
-		   
+
 			return this;
 
 		}
-		
-		private  Uri FixUri(string brokenUri)
+
+		private Uri FixUri(string brokenUri)
 		{
 			string newURI = string.Empty;
 			if (brokenUri.Contains("mailto:"))
@@ -361,10 +409,10 @@ namespace Converter
 				return "The file is either open, please close it or contains corrupt data";
 			}
 		}
-		private  string ParseDOCX(FileInfo fileInfo)
+		private string ParseDOCX(FileInfo fileInfo)
 		{
 			try
-			{   
+			{
 				byte[] byteArray = File.ReadAllBytes(fileInfo.FullName);
 				using (MemoryStream memoryStream = new MemoryStream())
 				{
