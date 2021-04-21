@@ -117,8 +117,8 @@ namespace Converter
 					HTML = ParseDOCX(fileInfo);
 				}
 			}
-			string landscape = FormatInvoice();
-			File.WriteAllBytes(pathSaveFile, saveDocument(landscape));
+			HTML = FormatInvoice();
+			File.WriteAllBytes(pathSaveFile, saveDocument());
 			writeHtmlFile(pathSaveFile);
 			Console.ReadKey();
 
@@ -138,33 +138,44 @@ namespace Converter
 	  */
 		private byte[] saveDocument(string landsacapeHtml = "")
 		{
+			HTML = HTML.Replace(substringCSSSelector("body"), "body { width: 36cm;  margin: 1cm auto; max-width: 36cm; padding: 1cm; }");
 			SelectPdf.HtmlToPdf converter = new SelectPdf.HtmlToPdf();
 			SelectPdf.PdfDocument doc = converter.ConvertHtmlString(HTML);
-			byte[] one;
+
+			HtmlToPdf htmlToPdfConverter = new HtmlToPdf();
+			htmlToPdfConverter.Document.PageOrientation = PdfPageOrientation.Landscape;
+			byte[] two;
 			using (MemoryStream ms = new MemoryStream())
 			{
-				doc.Save(ms);
-				one = ms.ToArray();
+				htmlToPdfConverter.ConvertHtmlToStream(HTML, null, ms);
+				two = ms.ToArray();
 				ms.Close();
 			}
-			doc.Close();
-			if (!string.IsNullOrEmpty(landsacapeHtml))
-			{
-				HtmlToPdf htmlToPdfConverter = new HtmlToPdf();
-				htmlToPdfConverter.Document.PageOrientation = PdfPageOrientation.Landscape;
-				byte[] two;
-				using (MemoryStream ms = new MemoryStream())
-				{
-					htmlToPdfConverter.ConvertHtmlToStream(landsacapeHtml, null, ms);
-					two = ms.ToArray();
-					ms.Close();
-				}
-				return concatPdfDoc(one, two);
-			}
-			else
-			{
-				return one;
-			}
+			return two;
+			//using (MemoryStream ms = new MemoryStream())
+			//{
+			//	doc.Save(ms);
+			//	one = ms.ToArray();
+			//	ms.Close();
+			//}
+			//doc.Close();
+			//if (!string.IsNullOrEmpty(landsacapeHtml))
+			//{
+			//	HtmlToPdf htmlToPdfConverter = new HtmlToPdf();
+			//	htmlToPdfConverter.Document.PageOrientation = PdfPageOrientation.Landscape;
+			//	byte[] two;
+			//	using (MemoryStream ms = new MemoryStream())
+			//	{
+			//		htmlToPdfConverter.ConvertHtmlToStream(landsacapeHtml, null, ms);
+			//		two = ms.ToArray();
+			//		ms.Close();
+			//	}
+			//	return concatPdfDoc(one, two);
+			//}
+			//else
+			//{
+			//	return one;
+			//}
 
 		}
 		/**
@@ -235,29 +246,42 @@ namespace Converter
 			//clear body
 			node.RemoveAll();
 			node.AppendChild(child);
+			
 			return document.OuterHtml;
 		}
+		private string substringCSSSelector(string selctor)
+        {
+			int start = HTML.IndexOf(selctor);
+			int end = HTML.IndexOf("}", start);
+			Console.WriteLine(end + " " + start);
+			return HTML.Substring(start, end - start + 1);
+        }
 		/**
 		 * Альбомная ореинтация под документ счет фактура
 		 * 
-		 * @param htmlText - html строка, в которйо необходимо найти данные
-		 * 
-		 * @return {string} - возвращает измененную html строку с страницей алтбомного формата
+		 * @return {string} - возвращает измененную html строку с страницей алтбомного формата отделенную от основного документа
 		 */
-		private string FormatInvoice()
+		private string FormatInvoice(bool isKommitent = false)
 		{
 			var html = new HtmlAgilityPack.HtmlDocument();
 			html.LoadHtml(HTML);
 			var document = html.DocumentNode;
+			//достаем селектор боди
+
 			//ищем таблицу страницу с счет фактурой
 			var node = searchNode(document, "Счет-фактура", "div");
 
-			//создаем новый объект документа для счет фактуры
-			html = new HtmlAgilityPack.HtmlDocument();
-			html.LoadHtml(NewDocument(node));
-			document = html.DocumentNode;
-			//осуществляем поиск в новом документе
-			node = searchNode(document, "Счет-фактура", "div");
+            if (isKommitent)
+            {
+				//создаем новый объект документа для счет фактуры
+				html = new HtmlAgilityPack.HtmlDocument();
+				html.LoadHtml(NewDocument(node));
+				document = html.DocumentNode;
+				//осуществляем поиск в новом документе
+				node = searchNode(document, "Счет-фактура", "div");
+			}
+            
+  
 			if (node != null)
 			{
 				var tableNode = node;
@@ -273,34 +297,9 @@ namespace Converter
 				}
 
 			}
-			//удаляем счет фактуру 
-			deletePage();
-			return document.OuterHtml;
-		}
-		private void deletePage()
-        {
-			var html = new HtmlAgilityPack.HtmlDocument();
-			html.LoadHtml(HTML);
-			var document = html.DocumentNode;
-			//ищем таблицу страницу с счет фактурой
-			var node = searchNode(document, "Счет-фактура", "div");
-			node.Remove();
-			HTML = document.OuterHtml;
 
-		}
-		/**
-		 * Ищет экземпляр Node в document по
-		 * @param document - исходный объект документа
-		 * @param keySearchValue -  текстовый ключ, по которому необходимо найти элемент, по типу в теге содержится слово счет фактура
-		 * @param tag - тег, чей объект необходимо найти, указывать нужно без дополнительных знаков, 
-		 * пример правильного запроса QuerySelectorAll("br")
-		 * 
-		 * @return {HtmlAgilityPack.HtmlNode} возвращает найденный экземпляр HtmlNode
-		 */
-		private List<HtmlAgilityPack.HtmlNode> searchNode(HtmlAgilityPack.HtmlNode document, string tag)
-		{
-			return document.QuerySelectorAll(tag).ToList();
-		}
+			return document.OuterHtml;
+		}	
 
 		/**
 		 * Ищет экземпляр Node в document по
@@ -325,27 +324,6 @@ namespace Converter
 			return null;
 		}
 
-		private int getLengthTag(HtmlAgilityPack.HtmlNode node, string tag)
-		{
-			return node.QuerySelectorAll(tag).ToArray().Length;
-		}
-
-		/**
-		 * Удаляет тег в определенной свяи
-		 * 
-		 * @param node - связь , в которой происходит удаление
-		 * @param tag - тег по которому необходимо построить связь
-		 * @param delTag - тег, который необходимо удалить
-		 */
-		private PdfConverter deleteTag(HtmlAgilityPack.HtmlNode node, string tag, string delTag)
-		{
-			var htmlArr = node.QuerySelectorAll(tag);
-			foreach (var item in htmlArr)
-			{
-				item.OuterHtml.Replace(delTag, string.Empty);
-			}
-			return this;
-		}
 		/**
 		 * Вставляет в тег определенный класс
 		 * 
