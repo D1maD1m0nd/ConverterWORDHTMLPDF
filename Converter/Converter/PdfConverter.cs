@@ -74,10 +74,6 @@ namespace Converter
 		{
 
 			HTML = ParseDOCX(bytes);
-
-
-			changeInvoiceFact();
-
 			using (MemoryStream ms = new MemoryStream())
 			{
 				EO.Pdf.HtmlToPdf.ConvertHtml(HTML, ms);
@@ -121,7 +117,9 @@ namespace Converter
 					HTML = ParseDOCX(fileInfo);
 				}
 			}
-			changeInvoiceFact().saveDocument(pathSaveFile).writeHtmlFile(pathSaveFile).concatPdfDoc();
+			string landscape = FormatInvoice();
+			File.WriteAllBytes(pathSaveFile, saveDocument(landscape));
+			writeHtmlFile(pathSaveFile);
 			Console.ReadKey();
 
 		}
@@ -132,43 +130,112 @@ namespace Converter
 			writer.Dispose();
 			return this;
 		}
-		public PdfConverter saveDocument(String pathSaveFile)
+		/*
+	  *@param landScapeMode - отвечает за альбомную ориентацию
+	  *@param landsacapeHtml - контент для альбомной ореинтации
+	  *
+	  *@return - массив байт пдф документа
+	  */
+		private byte[] saveDocument(string landsacapeHtml = "")
 		{
-			//SelectPdf.HtmlToPdf converter = new SelectPdf.HtmlToPdf();
-			//         SelectPdf.PdfDocument doc = converter.ConvertHtmlString(HTML);
-			//Console.WriteLine(doc.Pages.Count);
+			SelectPdf.HtmlToPdf converter = new SelectPdf.HtmlToPdf();
+			SelectPdf.PdfDocument doc = converter.ConvertHtmlString(HTML);
+			byte[] one;
+			using (MemoryStream ms = new MemoryStream())
+			{
+				doc.Save(ms);
+				one = ms.ToArray();
+				ms.Close();
+			}
+			doc.Close();
+			if (!string.IsNullOrEmpty(landsacapeHtml))
+			{
+				HtmlToPdf htmlToPdfConverter = new HtmlToPdf();
+				htmlToPdfConverter.Document.PageOrientation = PdfPageOrientation.Landscape;
+				byte[] two;
+				using (MemoryStream ms = new MemoryStream())
+				{
+					htmlToPdfConverter.ConvertHtmlToStream(landsacapeHtml, null, ms);
+					two = ms.ToArray();
+					ms.Close();
+				}
+				return concatPdfDoc(one, two);
+			}
+			else
+			{
+				return one;
+			}
 
-			//doc.Pages[0].Orientation = SelectPdf.PdfPageOrientation.Landscape;
-
-			//Console.WriteLine(doc.Pages[0].PageSize.Height + " " + doc.Pages[0].PageSize.Width);
-			//doc.Save(pathSaveFile);
-			//doc.Close();
-			HtmlToPdf htmlToPdfConverter = new HtmlToPdf();
-			htmlToPdfConverter.Document.PageOrientation = PdfPageOrientation.Landscape;
-			// convert HTML Code to a PDF file
-			htmlToPdfConverter.ConvertHtmlToFile(HTML, null, pathSaveFile);
-			return this;
 		}
-		public PdfConverter concatPdfDoc()
-        {
-			using (PdfDocument one = PdfReader.Open(@"D:\Desktop\тесты документов\file.pdf", PdfDocumentOpenMode.Import))
-			using (PdfDocument two = PdfReader.Open(@"D:\Desktop\тесты документов\file1.pdf", PdfDocumentOpenMode.Import))
+		/**
+        *Объединение двух документов в байтовом представлении
+        *
+        *@param doc1 - первый документ
+        *@param doc2 - второй документ
+        *
+        *@return массив байт нового документа
+        */
+		private byte[] concatPdfDoc(byte[] doc1, byte[] doc2)
+		{
+			PdfDocument one;
+			PdfDocument two;
+
+			//читаем первую часть документа
+			using (MemoryStream ms = new MemoryStream(doc1))
+			{
+				using (one = PdfReader.Open(ms, PdfDocumentOpenMode.Import)) ;
+				ms.Close();
+
+			}
+			one.Pages.RemoveAt(2);
+			//читаем вторую часть документа
+			using (MemoryStream ms = new MemoryStream(doc2))
+			{
+				using (two = PdfReader.Open(ms, PdfDocumentOpenMode.Import)) ;
+				ms.Close();
+
+			}
+
+			//объединяем документы
 			using (PdfDocument outPdf = new PdfDocument())
 			{
 				CopyPages(one, outPdf);
 				CopyPages(two, outPdf);
+				using (MemoryStream ms = new MemoryStream())
+				{
+					outPdf.Save(ms);
+					return ms.ToArray();
+				}
 
-				outPdf.Save("file1and2.pdf");
 			}
-
+			
 			void CopyPages(PdfDocument from, PdfDocument to)
 			{
+				
 				for (int i = 0; i < from.PageCount; i++)
 				{
 					to.AddPage(from.Pages[i]);
+					
 				}
 			}
-			return this;
+		}
+		/**
+        *Возвращает новый документ взятый из старого)))
+        *
+        *@child узел из пдф документа
+        *
+        *@return новую html строку
+        */
+		private string NewDocument(HtmlAgilityPack.HtmlNode child)
+		{
+			var html = new HtmlAgilityPack.HtmlDocument();
+			html.LoadHtml(HTML);
+			var document = html.DocumentNode;
+			var node = document.QuerySelector("body");
+			//clear body
+			node.RemoveAll();
+			node.AppendChild(child);
+			return document.OuterHtml;
 		}
 		/**
 		 * Альбомная ореинтация под документ счет фактура
@@ -177,38 +244,49 @@ namespace Converter
 		 * 
 		 * @return {string} - возвращает измененную html строку с страницей алтбомного формата
 		 */
-			private PdfConverter changeInvoiceFact()
+		private string FormatInvoice()
 		{
 			var html = new HtmlAgilityPack.HtmlDocument();
 			html.LoadHtml(HTML);
 			var document = html.DocumentNode;
-			//ищем таблицу с счет фактурой
+			//ищем таблицу страницу с счет фактурой
 			var node = searchNode(document, "Счет-фактура", "div");
+
+			//создаем новый объект документа для счет фактуры
+			html = new HtmlAgilityPack.HtmlDocument();
+			html.LoadHtml(NewDocument(node));
+			document = html.DocumentNode;
+			//осуществляем поиск в новом документе
+			node = searchNode(document, "Счет-фактура", "div");
 			if (node != null)
 			{
 				var tableNode = node;
 				node = searchNode(node, "Сумма", "table");
 
-			
+
 				if (node != null)
 				{
-					//меняем шрифт
-					// меняем размер ячейки и их обводку
-					int lenTh = getLengthTag(node, "tr");
 
 					insertClass(tableNode, "table", "table", true);
 					insertClass(node, "changeTdItem", "td");
 					insertClass(node, "changeTextIntable", "span");
-
-
-
-					//меняем размерность ячеек
 				}
 
 			}
-			deleteTag(document, "table", "br");
+			//удаляем счет фактуру 
+			deletePage();
+			return document.OuterHtml;
+		}
+		private void deletePage()
+        {
+			var html = new HtmlAgilityPack.HtmlDocument();
+			html.LoadHtml(HTML);
+			var document = html.DocumentNode;
+			//ищем таблицу страницу с счет фактурой
+			var node = searchNode(document, "Счет-фактура", "div");
+			node.Remove();
 			HTML = document.OuterHtml;
-			return this;
+
 		}
 		/**
 		 * Ищет экземпляр Node в document по
