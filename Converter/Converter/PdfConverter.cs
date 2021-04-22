@@ -64,22 +64,7 @@ namespace Converter
 		}
 
 
-		/**
-		 * Конвертирует переданный массив байт doc Документа и конвертирует его в пдф
-		 * 
-		 * @param bytes - массив байт док документа
-		 * @param pathSaveFile - путь куда необходимо сохранить
-		 */
-		public byte[] Convert(byte[] bytes, string pathSaveFile)
-		{
 
-			HTML = ParseDOCX(bytes);
-			using (MemoryStream ms = new MemoryStream())
-			{
-				EO.Pdf.HtmlToPdf.ConvertHtml(HTML, ms);
-				return ms.ToArray();
-			}
-		}
 		/**
 		 * Конвертирует переданный путь до doc Документа и конвертирует его в пдф
 		 * 
@@ -268,8 +253,11 @@ namespace Converter
 
             if (isKommitent)
             {
+				//клонируем текущий обхект, что бы в будущем его использовать и он не выпилился к хуям из кучи
 				var cloneNode = node.Clone();
+				//удаляем объект счет фактуры из основного документа
 				node.Remove();
+				//присваиваем измененнннннннный документ в основной
 				HTML = document.OuterHtml;
 				//создаем новый объект документа для счет фактуры
 				html = new HtmlAgilityPack.HtmlDocument();
