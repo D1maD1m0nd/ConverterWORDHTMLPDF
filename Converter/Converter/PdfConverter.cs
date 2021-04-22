@@ -117,8 +117,8 @@ namespace Converter
 					HTML = ParseDOCX(fileInfo);
 				}
 			}
-			HTML = FormatInvoice();
-			File.WriteAllBytes(pathSaveFile, saveDocument());
+			string landscapehtml = FormatInvoice(true);
+			File.WriteAllBytes(pathSaveFile, saveDocument(landscapehtml));
 			writeHtmlFile(pathSaveFile);
 			Console.ReadKey();
 
@@ -142,42 +142,37 @@ namespace Converter
 			SelectPdf.HtmlToPdf converter = new SelectPdf.HtmlToPdf();
 			SelectPdf.PdfDocument doc = converter.ConvertHtmlString(HTML);
 
-			HtmlToPdf htmlToPdfConverter = new HtmlToPdf();
-			htmlToPdfConverter.Document.PageOrientation = PdfPageOrientation.Landscape;
 			byte[] two;
-			using (MemoryStream ms = new MemoryStream())
-			{
-				htmlToPdfConverter.ConvertHtmlToStream(HTML, null, ms);
-				two = ms.ToArray();
-				ms.Close();
-			}
-			return two;
-			//using (MemoryStream ms = new MemoryStream())
-			//{
-			//	doc.Save(ms);
-			//	one = ms.ToArray();
-			//	ms.Close();
-			//}
-			//doc.Close();
-			//if (!string.IsNullOrEmpty(landsacapeHtml))
-			//{
-			//	HtmlToPdf htmlToPdfConverter = new HtmlToPdf();
-			//	htmlToPdfConverter.Document.PageOrientation = PdfPageOrientation.Landscape;
-			//	byte[] two;
-			//	using (MemoryStream ms = new MemoryStream())
-			//	{
-			//		htmlToPdfConverter.ConvertHtmlToStream(landsacapeHtml, null, ms);
-			//		two = ms.ToArray();
-			//		ms.Close();
-			//	}
-			//	return concatPdfDoc(one, two);
-			//}
-			//else
-			//{
-			//	return one;
-			//}
+			byte[] one;
 
-		}
+            using (MemoryStream ms = new MemoryStream())
+            {
+                doc.Save(ms);
+                one = ms.ToArray();
+                ms.Close();
+            }
+            doc.Close();
+            if (!string.IsNullOrEmpty(landsacapeHtml))
+            {
+                HtmlToPdf htmlToPdfConverter = new HtmlToPdf();
+                htmlToPdfConverter.Document.PageOrientation = PdfPageOrientation.Landscape;
+                using (MemoryStream ms = new MemoryStream())
+                {
+
+                    htmlToPdfConverter.ConvertHtmlToStream(landsacapeHtml, null, ms);
+					htmlToPdfConverter.ConvertHtmlToFile(landsacapeHtml,null,"3131.pdf");
+                    two = ms.ToArray();
+                    ms.Close();
+                }
+                return concatPdfDoc(one, two);
+            }
+            else
+            {
+                return one;
+            }
+
+        }
+		
 		/**
         *Объединение двух документов в байтовом представлении
         *
@@ -273,9 +268,12 @@ namespace Converter
 
             if (isKommitent)
             {
+				var cloneNode = node.Clone();
+				node.Remove();
+				HTML = document.OuterHtml;
 				//создаем новый объект документа для счет фактуры
 				html = new HtmlAgilityPack.HtmlDocument();
-				html.LoadHtml(NewDocument(node));
+				html.LoadHtml(NewDocument(cloneNode));
 				document = html.DocumentNode;
 				//осуществляем поиск в новом документе
 				node = searchNode(document, "Счет-фактура", "div");
@@ -297,10 +295,33 @@ namespace Converter
 				}
 
 			}
+			deleteIntoTableTagBR(document);
 
 			return document.OuterHtml;
-		}	
+		}
+		/**
+         * Метод который убирает тег br , от которого идет логика разрыва страницы
+         * 
+         * @param node - связь , в которой происходит удаление
+         * @param tag - тег по которому необходимо построить связь
+         * @param delTag - тег, который необходимо удалить
+         */
+		private void deleteIntoTableTagBR(HtmlAgilityPack.HtmlNode node)
+		{
+			var htmlArr = node.QuerySelectorAll("table");
+			foreach (var item in htmlArr)
+			{
+				var node1 = item.QuerySelectorAll("span").ToArray();
+				for(int i = 0; i < node1.Length; i++)
+                {
+					if (node1[i].InnerHtml.Contains("<br>"))
+					{
+						node1[i].Remove();
+					}
+                }
+			}
 
+		}
 		/**
 		 * Ищет экземпляр Node в document по
 		 * @param document - исходный объект документа
