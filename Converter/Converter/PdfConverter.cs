@@ -65,8 +65,8 @@ namespace Converter
             }
 
             //string landscapehtml = FormatInvoice(true);
-            HTML = FormatInvoice();
-            HTML = FormatTable("Акт");
+            //HTML = FormatInvoice();
+            HTML = FormatTable("(работы, услуги)");
             File.WriteAllBytes(pathSaveFile, SaveDocument());
             writeHtmlFile(pathSaveFile);
             Console.ReadKey();
@@ -264,19 +264,15 @@ namespace Converter
             var html = new HtmlDocument();
             html.LoadHtml(HTML);
             var document = html.DocumentNode;
-            var node = searchNode(document, key, "div");
+            var node = searchNode(document, key, "table");
+
+
             if (node != null)
             {
-                var tableNode = node;
-                node = searchNode(node, "№", "table");
-
-
-                if (node != null)
-                {
-                    InsertClass(tableNode, "tableWidth", "table", true);
-                    InsertClass(node, "columnTdX", "td");
-                }
+                //InsertClass(node, "tableWidth", "table", true);
+                InsertClass(node, "columnTdX", "td");
             }
+
 
             return document.OuterHtml;
         }
@@ -316,7 +312,7 @@ namespace Converter
             var htmlArr = document.QuerySelectorAll(tag);
 
             foreach (var item in htmlArr)
-                if (item.InnerText.IndexOf(keySearchValue) != -1)
+                if (item.InnerText.IndexOf(keySearchValue, StringComparison.Ordinal) != -1)
                     return item;
 
             return null;
