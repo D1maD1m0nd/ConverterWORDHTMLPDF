@@ -3,7 +3,7 @@
     public static class CssConstants
     {
         public static string tableWidth = ".tableWidth{width:25cm; border-collapse: collapse;}";
-        
+
         public static string tdTextWidth =
             ".columnTdX {vertical-align: middle;" +
             "border-top: solid windowtext 2.0pt;" +
@@ -31,7 +31,7 @@
                                             " padding-top:6px;" +
                                             " vertical-align:middlle;}";
 
-            
+
         public static string table = ".table {   border-collapse: collapse;}";
     }
 }

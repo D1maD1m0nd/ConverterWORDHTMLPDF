@@ -2,26 +2,25 @@
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Xml.Linq;
 using DocumentFormat.OpenXml.Packaging;
-using OpenXmlPowerTools;
 using Fizzler.Systems.HtmlAgilityPack;
-using System.Collections.Generic;
-using PdfSharp;
-using TheArtOfDev.HtmlRenderer.PdfSharp;
-using PdfSharp.Pdf;
-using HiQPdf;
 using HtmlAgilityPack;
+using OpenXmlPowerTools;
 using PdfSharp.Pdf.IO;
+using SelectPdf;
+using PdfDocument = PdfSharp.Pdf.PdfDocument;
+using PdfPageOrientation = HiQPdf.PdfPageOrientation;
 
 namespace Converter
 {
-    class PdfConverter
+    internal class PdfConverter
     {
-        private string CSS;
-        private string HTML;
         private byte[] bytePdfDocument;
+        private string CSS;
         private string directory;
+        private string HTML;
 
 
         public PdfConverter SetCss(string CSS)
@@ -32,27 +31,21 @@ namespace Converter
 
 
         /**
-		 * Конвертирует переданный путь до doc Документа и конвертирует его в пдф
-		 * 
-		 * @param path - путь до .doc документа
-		 * @param pathSaveFile - путь куда необходимо сохранить
-		 */
+         * Конвертирует переданный путь до doc Документа и конвертирует его в пдф
+         * 
+         * @param path - путь до .doc документа
+         * @param pathSaveFile - путь куда необходимо сохранить
+         */
         public void Convert(string path, string pathSaveFile)
         {
             var fileInfo = new FileInfo(path);
 
-            if (!fileInfo.Exists)
-            {
-                new FileNotFoundException();
-            }
+            if (!fileInfo.Exists) throw new FileNotFoundException();
 
-            if (fileInfo.Extension != ".docx" && fileInfo.Extension != ".docx")
-            {
-                new FileFormatException();
-            }
+            if (fileInfo.Extension != ".docx" && fileInfo.Extension != ".docx") throw new FileFormatException();
 
 
-            string fullFilePath = fileInfo.FullName;
+            var fullFilePath = fileInfo.FullName;
 
             try
             {
@@ -62,7 +55,7 @@ namespace Converter
             {
                 if (e.ToString().Contains("Invalid Hyperlink"))
                 {
-                    using (FileStream fs = new FileStream(fullFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+                    using (var fs = new FileStream(fullFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite))
                     {
                         UriFixer.FixInvalidUri(fs, brokenUri => FixUri(brokenUri));
                     }
@@ -72,7 +65,8 @@ namespace Converter
             }
 
             //string landscapehtml = FormatInvoice(true);
-            HTML = formatTable("Акт");
+            HTML = FormatInvoice();
+            HTML = FormatTable("Акт");
             File.WriteAllBytes(pathSaveFile, SaveDocument());
             writeHtmlFile(pathSaveFile);
             Console.ReadKey();
@@ -94,15 +88,15 @@ namespace Converter
       */
         private byte[] SaveDocument(string landsacapeHtml = "")
         {
-            HTML = HTML.Replace(substringCSSSelector("body"),
+            HTML = HTML.Replace(SubstringCssSelector("body"),
                 "body { width: 36cm;  margin: 1cm auto; max-width: 36cm; padding: 1cm; }");
-            SelectPdf.HtmlToPdf converter = new SelectPdf.HtmlToPdf();
-            SelectPdf.PdfDocument doc = converter.ConvertHtmlString(HTML);
+            var converter = new HtmlToPdf();
+            var doc = converter.ConvertHtmlString(HTML);
 
             byte[] two;
             byte[] one;
 
-            using (MemoryStream ms = new MemoryStream())
+            using (var ms = new MemoryStream())
             {
                 doc.Save(ms);
                 one = ms.ToArray();
@@ -112,9 +106,9 @@ namespace Converter
             doc.Close();
             if (!string.IsNullOrEmpty(landsacapeHtml))
             {
-                HtmlToPdf htmlToPdfConverter = new HtmlToPdf();
+                var htmlToPdfConverter = new HiQPdf.HtmlToPdf();
                 htmlToPdfConverter.Document.PageOrientation = PdfPageOrientation.Landscape;
-                using (MemoryStream ms = new MemoryStream())
+                using (var ms = new MemoryStream())
                 {
                     htmlToPdfConverter.ConvertHtmlToStream(landsacapeHtml, null, ms);
                     htmlToPdfConverter.ConvertHtmlToFile(landsacapeHtml, null, "3131.pdf");
@@ -124,46 +118,52 @@ namespace Converter
 
                 return concatPdfDoc(one, two);
             }
-            else
-            {
-                return one;
-            }
+
+            return one;
         }
 
         /**
-        *Объединение двух документов в байтовом представлении
-        *
-        *@param doc1 - первый документ
-        *@param doc2 - второй документ
-        *
-        *@return массив байт нового документа
-        */
+         * Объединение двух документов в байтовом представлении
+         * 
+         * @param doc1 - первый документ
+         * @param doc2 - второй документ
+         * 
+         * @return массив байт нового документа
+         */
         private byte[] concatPdfDoc(byte[] doc1, byte[] doc2)
         {
             PdfDocument one;
             PdfDocument two;
 
             //читаем первую часть документа
-            using (MemoryStream ms = new MemoryStream(doc1))
+            using (var ms = new MemoryStream(doc1))
             {
-                using (one = PdfReader.Open(ms, PdfDocumentOpenMode.Import)) ;
+                using (one = PdfReader.Open(ms, PdfDocumentOpenMode.Import))
+                {
+                    ;
+                }
+
                 ms.Close();
             }
 
             one.Pages.RemoveAt(2);
             //читаем вторую часть документа
-            using (MemoryStream ms = new MemoryStream(doc2))
+            using (var ms = new MemoryStream(doc2))
             {
-                using (two = PdfReader.Open(ms, PdfDocumentOpenMode.Import)) ;
+                using (two = PdfReader.Open(ms, PdfDocumentOpenMode.Import))
+                {
+                    ;
+                }
+
                 ms.Close();
             }
 
             //объединяем документы
-            using (PdfDocument outPdf = new PdfDocument())
+            using (var outPdf = new PdfDocument())
             {
                 CopyPages(one, outPdf);
                 CopyPages(two, outPdf);
-                using (MemoryStream ms = new MemoryStream())
+                using (var ms = new MemoryStream())
                 {
                     outPdf.Save(ms);
                     return ms.ToArray();
@@ -172,23 +172,20 @@ namespace Converter
 
             void CopyPages(PdfDocument from, PdfDocument to)
             {
-                for (int i = 0; i < from.PageCount; i++)
-                {
-                    to.AddPage(from.Pages[i]);
-                }
+                for (var i = 0; i < from.PageCount; i++) to.AddPage(@from.Pages[i]);
             }
         }
 
         /**
-        *Возвращает новый документ взятый из старого)))
-        *
-        *@child узел из пдф документа
-        *
-        *@return новую html строку
-        */
-        private string NewDocument(HtmlAgilityPack.HtmlNode child)
+         * Возвращает новый документ взятый из старого)))
+         * 
+         * @child узел из пдф документа
+         * 
+         * @return новую html строку
+         */
+        private string NewDocument(HtmlNode child)
         {
-            var html = new HtmlAgilityPack.HtmlDocument();
+            var html = new HtmlDocument();
             html.LoadHtml(HTML);
             var document = html.DocumentNode;
             var node = document.QuerySelector("body");
@@ -199,22 +196,22 @@ namespace Converter
             return document.OuterHtml;
         }
 
-        private string substringCSSSelector(string selctor)
+        private string SubstringCssSelector(string selctor)
         {
-            int start = HTML.IndexOf(selctor);
-            int end = HTML.IndexOf("}", start);
+            var start = HTML.IndexOf(selctor, StringComparison.Ordinal);
+            var end = HTML.IndexOf("}", start, StringComparison.Ordinal);
             Console.WriteLine(end + " " + start);
             return HTML.Substring(start, end - start + 1);
         }
 
         /**
-		 * Альбомная ореинтация под документ счет фактура
-		 * 
-		 * @return {string} - возвращает измененную html строку с страницей алтбомного формата отделенную от основного документа
-		 */
+         * Альбомная ореинтация под документ счет фактура
+         * 
+         * @return {string} - возвращает измененную html строку с страницей алтбомного формата отделенную от основного документа
+         */
         private string FormatInvoice(bool isKommitent = false)
         {
-            var html = new HtmlAgilityPack.HtmlDocument();
+            var html = new HtmlDocument();
             html.LoadHtml(HTML);
             var document = html.DocumentNode;
 
@@ -230,7 +227,7 @@ namespace Converter
                 //присваиваем измененнннннннный документ в основной
                 HTML = document.OuterHtml;
                 //создаем новый объект документа для счет фактуры
-                html = new HtmlAgilityPack.HtmlDocument();
+                html = new HtmlDocument();
                 html.LoadHtml(NewDocument(cloneNode));
                 document = html.DocumentNode;
                 //осуществляем поиск в новом документе
@@ -246,9 +243,9 @@ namespace Converter
 
                 if (node != null)
                 {
-                    insertClass(tableNode, "table", "table", true);
-                    insertClass(node, "changeTdItem", "td");
-                    insertClass(node, "changeTextIntable", "span");
+                    InsertClass(tableNode, "table", "table", true);
+                    InsertClass(node, "changeTdItem", "td");
+                    InsertClass(node, "changeTextIntable", "span");
                 }
             }
 
@@ -257,14 +254,16 @@ namespace Converter
             return document.OuterHtml;
         }
 
-        private string formatTable(string key)
+        /**
+         * форматирует таблицу по заданному ключу
+         * 
+         * @param key {string} -  ключ по которому происходит поиск страницы
+         */
+        private string FormatTable(string key)
         {
-            var html = new HtmlAgilityPack.HtmlDocument();
+            var html = new HtmlDocument();
             html.LoadHtml(HTML);
             var document = html.DocumentNode;
-
-
-            //ищем таблицу страницу с счет фактурой
             var node = searchNode(document, key, "div");
             if (node != null)
             {
@@ -274,14 +273,13 @@ namespace Converter
 
                 if (node != null)
                 {
-                    insertClass(tableNode, "tableWidth", "table", true);
-                    insertClass(node, "columnTdX", "td");
+                    InsertClass(tableNode, "tableWidth", "table", true);
+                    InsertClass(node, "columnTdX", "td");
                 }
             }
 
             return document.OuterHtml;
         }
-
 
 
         /**
@@ -291,57 +289,49 @@ namespace Converter
          * @param tag - тег по которому необходимо построить связь
          * @param delTag - тег, который необходимо удалить
          */
-        private void deleteIntoTableTagBR(HtmlAgilityPack.HtmlNode node)
+        private void deleteIntoTableTagBR(HtmlNode node)
         {
             var htmlArr = node.QuerySelectorAll("table");
             foreach (var item in htmlArr)
             {
                 var node1 = item.QuerySelectorAll("span").ToArray();
-                for (int i = 0; i < node1.Length; i++)
-                {
+                for (var i = 0; i < node1.Length; i++)
                     if (node1[i].InnerHtml.Contains("<br>"))
-                    {
                         node1[i].Remove();
-                    }
-                }
             }
         }
 
         /**
-		 * Ищет экземпляр Node в document по
-		 * @param document - исходный объект документа
-		 * @param keySearchValue -  текстовый ключ, по которому необходимо найти элемент, по типу в теге содержится слово счет фактура
-		 * @param tag - тег, чей объект необходимо найти, указывать нужно без дополнительных знаков, 
-		 * пример правильного запроса QuerySelectorAll("br")
-		 * 
-		 * @return {HtmlAgilityPack.HtmlNode} возвращает найденный экземпляр HtmlNode
-		 */
-        private HtmlAgilityPack.HtmlNode searchNode(HtmlAgilityPack.HtmlNode document, string keySearchValue,
+         * Ищет экземпляр Node в document по
+         * @param document - исходный объект документа
+         * @param keySearchValue -  текстовый ключ, по которому необходимо найти элемент, по типу в теге содержится слово счет фактура
+         * @param tag - тег, чей объект необходимо найти, указывать нужно без дополнительных знаков, 
+         * пример правильного запроса QuerySelectorAll("br")
+         * 
+         * @return {HtmlAgilityPack.HtmlNode} возвращает найденный экземпляр HtmlNode
+         */
+        private HtmlNode searchNode(HtmlNode document, string keySearchValue,
             string tag)
         {
             var htmlArr = document.QuerySelectorAll(tag);
 
             foreach (var item in htmlArr)
-            {
                 if (item.InnerText.IndexOf(keySearchValue) != -1)
-                {
                     return item;
-                }
-            }
 
             return null;
         }
 
         /**
-		 * Вставляет в тег определенный класс
-		 * 
-		 *@param node - связь в которйо необходимо произвести изменения
-		 *@param currendClass - связь , который вставляем
-		 *@param tag тег, чью связь необходимо найти 
-		 *@param exp выражение, по которому необходимо найти элемент
-		 *@param флаг указывающий на количество проходов по массиву
-		 */
-        private PdfConverter insertClass(HtmlAgilityPack.HtmlNode node, string currentClass, string tag,
+         * Вставляет в тег определенный класс
+         *  
+         * @param node - связь в которйо необходимо произвести изменения
+         * @param currendClass - связь , который вставляем
+         * @param tag тег, чью связь необходимо найти 
+         * @param exp выражение, по которому необходимо найти элемент
+         * @param флаг указывающий на количество проходов по массиву
+         */
+        private PdfConverter InsertClass(HtmlNode node, string currentClass, string tag,
             bool firstElem = false)
         {
             var nodes = node.QuerySelectorAll(tag);
@@ -362,10 +352,10 @@ namespace Converter
 
         private Uri FixUri(string brokenUri)
         {
-            string newURI = string.Empty;
+            var newURI = string.Empty;
             if (brokenUri.Contains("mailto:"))
             {
-                int mailToCount = "mailto:".Length;
+                var mailToCount = "mailto:".Length;
                 brokenUri = brokenUri.Remove(0, mailToCount);
                 newURI = brokenUri;
             }
@@ -377,31 +367,27 @@ namespace Converter
             return new Uri(newURI);
         }
 
-        private string ParseDOCX(byte[] byteArray, string nameDoc = "Name", string fullName = "fullName")
+        private string ParseDocx(byte[] byteArray, string nameDoc = "Name", string fullName = "fullName")
         {
             try
             {
-                using (MemoryStream memoryStream = new MemoryStream())
+                using (var memoryStream = new MemoryStream())
                 {
                     memoryStream.Write(byteArray, 0, byteArray.Length);
-                    using (WordprocessingDocument wDoc =
+                    using (var wDoc =
                         WordprocessingDocument.Open(memoryStream, true))
                     {
-                        int imageCounter = 0;
                         var pageTitle = nameDoc;
                         var part = wDoc.CoreFilePropertiesPart;
                         if (part != null)
                             pageTitle = (string) part.GetXDocument()
                                 .Descendants(DC.title)
                                 .FirstOrDefault() ?? fullName;
-                        string spanElem = "";
+                        var spanElem = "";
                         //обработка шапки для изменения наложения элементов
-                        for (int i = 0; i < 10; i++)
-                        {
-                            spanElem += $"span.pt-a0-00000{i}" + "{margin-right:40px;}";
-                        }
+                        for (var i = 0; i < 10; i++) spanElem += $"span.pt-a0-00000{i}" + "{margin-right:40px;}";
 
-                        WmlToHtmlConverterSettings settings = new WmlToHtmlConverterSettings()
+                        var settings = new WmlToHtmlConverterSettings
                         {
                             AdditionalCss = CSS + $"{spanElem}",
 
@@ -412,13 +398,24 @@ namespace Converter
                             RestrictToSupportedNumberingFormats = false,
                             ImageHandler = imageInfo =>
                             {
-                                ++imageCounter;
-                                string extension = imageInfo.ContentType.Split('/')[1].ToLower();
+                                var extension = imageInfo.ContentType.Split('/')[1].ToLower();
                                 ImageFormat imageFormat = null;
-                                if (extension == "png") imageFormat = ImageFormat.Png;
-                                else if (extension == "gif") imageFormat = ImageFormat.Gif;
-                                else if (extension == "bmp") imageFormat = ImageFormat.Bmp;
-                                else if (extension == "jpeg") imageFormat = ImageFormat.Jpeg;
+                                if (extension == "png")
+                                {
+                                    imageFormat = ImageFormat.Png;
+                                }
+                                else if (extension == "gif")
+                                {
+                                    imageFormat = ImageFormat.Gif;
+                                }
+                                else if (extension == "bmp")
+                                {
+                                    imageFormat = ImageFormat.Bmp;
+                                }
+                                else if (extension == "jpeg")
+                                {
+                                    imageFormat = ImageFormat.Jpeg;
+                                }
                                 else if (extension == "tiff")
                                 {
                                     extension = "gif";
@@ -435,27 +432,27 @@ namespace Converter
                                 string base64 = null;
                                 try
                                 {
-                                    using (MemoryStream ms = new MemoryStream())
+                                    using (var ms = new MemoryStream())
                                     {
                                         imageInfo.Bitmap.Save(ms, imageFormat);
                                         var ba = ms.ToArray();
                                         base64 = System.Convert.ToBase64String(ba);
                                     }
                                 }
-                                catch (System.Runtime.InteropServices.ExternalException)
+                                catch (ExternalException)
                                 {
                                     return null;
                                 }
 
-                                ImageFormat format = imageInfo.Bitmap.RawFormat;
-                                ImageCodecInfo codec = ImageCodecInfo.GetImageDecoders()
+                                var format = imageInfo.Bitmap.RawFormat;
+                                var codec = ImageCodecInfo.GetImageDecoders()
                                     .First(c => c.FormatID == format.Guid);
-                                string mimeType = codec.MimeType;
+                                var mimeType = codec.MimeType;
 
-                                string imageSource =
+                                var imageSource =
                                     string.Format("data:{0};base64,{1}", mimeType, base64);
 
-                                XElement img = new XElement(Xhtml.img,
+                                var img = new XElement(Xhtml.img,
                                     new XAttribute(NoNamespace.src, imageSource),
                                     imageInfo.ImgStyleAttribute,
                                     imageInfo.AltText != null
@@ -465,7 +462,7 @@ namespace Converter
                             }
                         };
 
-                        XElement htmlElement = WmlToHtmlConverter.ConvertToHtml(wDoc, settings);
+                        var htmlElement = WmlToHtmlConverter.ConvertToHtml(wDoc, settings);
                         var html = new XDocument(new XDocumentType("html", null, null, null),
                             htmlElement);
                         var htmlString = html.ToString(SaveOptions.DisableFormatting);
@@ -483,29 +480,25 @@ namespace Converter
         {
             try
             {
-                byte[] byteArray = File.ReadAllBytes(fileInfo.FullName);
-                using (MemoryStream memoryStream = new MemoryStream())
+                var byteArray = File.ReadAllBytes(fileInfo.FullName);
+                using (var memoryStream = new MemoryStream())
                 {
                     memoryStream.Write(byteArray, 0, byteArray.Length);
-                    using (WordprocessingDocument wDoc =
+                    using (var wDoc =
                         WordprocessingDocument.Open(memoryStream, true))
                     {
-                        int imageCounter = 0;
                         var pageTitle = fileInfo.FullName;
                         var part = wDoc.CoreFilePropertiesPart;
                         if (part != null)
                             pageTitle = (string) part.GetXDocument()
                                 .Descendants(DC.title)
                                 .FirstOrDefault() ?? fileInfo.FullName;
-                        string spanElem = "";
+                        var spanElem = "";
                         //обработка шапки для изменения наложения элементов
-                        for (int i = 0; i < 10; i++)
-                        {
-                            spanElem += $"span.pt-a0-00000{i}" + "{margin-right:40px;}";
-                        }
+                        for (var i = 0; i < 10; i++) spanElem += $"span.pt-a0-00000{i}" + "{margin-right:40px;}";
 
                         CSS += spanElem;
-                        WmlToHtmlConverterSettings settings = new WmlToHtmlConverterSettings()
+                        var settings = new WmlToHtmlConverterSettings
                         {
                             AdditionalCss = CSS,
                             PageTitle = pageTitle,
@@ -515,13 +508,24 @@ namespace Converter
                             RestrictToSupportedNumberingFormats = false,
                             ImageHandler = imageInfo =>
                             {
-                                ++imageCounter;
-                                string extension = imageInfo.ContentType.Split('/')[1].ToLower();
+                                var extension = imageInfo.ContentType.Split('/')[1].ToLower();
                                 ImageFormat imageFormat = null;
-                                if (extension == "png") imageFormat = ImageFormat.Png;
-                                else if (extension == "gif") imageFormat = ImageFormat.Gif;
-                                else if (extension == "bmp") imageFormat = ImageFormat.Bmp;
-                                else if (extension == "jpeg") imageFormat = ImageFormat.Jpeg;
+                                if (extension == "png")
+                                {
+                                    imageFormat = ImageFormat.Png;
+                                }
+                                else if (extension == "gif")
+                                {
+                                    imageFormat = ImageFormat.Gif;
+                                }
+                                else if (extension == "bmp")
+                                {
+                                    imageFormat = ImageFormat.Bmp;
+                                }
+                                else if (extension == "jpeg")
+                                {
+                                    imageFormat = ImageFormat.Jpeg;
+                                }
                                 else if (extension == "tiff")
                                 {
                                     extension = "gif";
@@ -538,27 +542,27 @@ namespace Converter
                                 string base64 = null;
                                 try
                                 {
-                                    using (MemoryStream ms = new MemoryStream())
+                                    using (var ms = new MemoryStream())
                                     {
                                         imageInfo.Bitmap.Save(ms, imageFormat);
                                         var ba = ms.ToArray();
                                         base64 = System.Convert.ToBase64String(ba);
                                     }
                                 }
-                                catch (System.Runtime.InteropServices.ExternalException)
+                                catch (ExternalException)
                                 {
                                     return null;
                                 }
 
-                                ImageFormat format = imageInfo.Bitmap.RawFormat;
-                                ImageCodecInfo codec = ImageCodecInfo.GetImageDecoders()
+                                var format = imageInfo.Bitmap.RawFormat;
+                                var codec = ImageCodecInfo.GetImageDecoders()
                                     .First(c => c.FormatID == format.Guid);
-                                string mimeType = codec.MimeType;
+                                var mimeType = codec.MimeType;
 
-                                string imageSource =
-                                    string.Format("data:{0};base64,{1}", mimeType, base64);
+                                var imageSource =
+                                    $"data:{mimeType};base64,{base64}";
 
-                                XElement img = new XElement(Xhtml.img,
+                                var img = new XElement(Xhtml.img,
                                     new XAttribute(NoNamespace.src, imageSource),
                                     imageInfo.ImgStyleAttribute,
                                     imageInfo.AltText != null
@@ -568,7 +572,7 @@ namespace Converter
                             }
                         };
 
-                        XElement htmlElement = WmlToHtmlConverter.ConvertToHtml(wDoc, settings);
+                        var htmlElement = WmlToHtmlConverter.ConvertToHtml(wDoc, settings);
                         var html = new XDocument(new XDocumentType("html", null, null, null),
                             htmlElement);
                         var htmlString = html.ToString(SaveOptions.DisableFormatting);

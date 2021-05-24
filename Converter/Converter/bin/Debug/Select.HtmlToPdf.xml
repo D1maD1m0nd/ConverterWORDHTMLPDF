@@ -2607,6 +2607,11 @@
             Allows copying page contents such as text and images.  
             </summary>
         </member>
+        <member name="P:SelectPdf.PdfDocumentSecurity.CanAccessibilityCopyContent">
+            <summary>
+            Allows copying page accessibility contents such as text and images.  
+            </summary>
+        </member>
         <member name="P:SelectPdf.PdfDocumentSecurity.CanEditAnnotations">
             <summary>
             Allows document annotations editing.
@@ -4339,6 +4344,11 @@
         <member name="P:SelectPdf.PdfSecurityOptions.CanCopyContent">
             <summary>
             Allows copying page contents such as text and images.  
+            </summary>
+        </member>
+        <member name="P:SelectPdf.PdfSecurityOptions.CanAccessibilityCopyContent">
+            <summary>
+            Allows copying page accessibility contents such as text and images.  
             </summary>
         </member>
         <member name="P:SelectPdf.PdfSecurityOptions.CanEditAnnotations">

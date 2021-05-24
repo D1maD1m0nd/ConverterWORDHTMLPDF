@@ -1,14 +1,10 @@
-﻿
-using System.Windows.Forms.VisualStyles;
-
-namespace Converter
+﻿namespace Converter
 {
-
-    class App
+    internal class App
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
-            PdfConverter convert = new PdfConverter();
+            var convert = new PdfConverter();
             convert.SetCss(CssConstants.body +
                            CssConstants.img +
                            CssConstants.br +
@@ -16,15 +12,11 @@ namespace Converter
                            CssConstants.table +
                            CssConstants.tdTextWidth +
                            CssConstants.tableWidth
-
-
-                                )
-                    .Convert(
-                            @"Z:\Загрузки\Акт АБИПА,$.docx",
-                            @"C:\Users\Dimond97\Desktop\New folder\file.pdf"
-                            );
-
+                )
+                .Convert(
+                    @"D:\Download\Акт АБИПА,$.docx",
+                    @"D:\Desktop\тесты документов\file.pdf"
+                );
         }
     }
 }
-
