@@ -16,14 +16,14 @@
                                     "margin: 1cm auto;" +
                                     "max-width: 23cm;" +
                                     "padding: 1cm; }";
-
+        public static string br = "br {page-break-before: always;}";
         public static string img =
             "img {page-break-before: auto;" +
             " page-break-after: auto;" +
             " page-break-inside: avoid;" +
             " position: relative; }";
 
-        public static string br = "br {page-break-before: always;} .changeTextIntable{font-size:12px;}";
+        //public static string br = "br {page-break-before: always;} .changeTextIntable{font-size:12px;}";
 
 
         public static string changeTdItem = ".changeTdItem{border:1px solid;" +
@@ -33,5 +33,6 @@
 
 
         public static string table = ".table {   border-collapse: collapse;}";
+        public static string changeText =  ".changeTextIntable{font-size:12px;}";
     }
 }

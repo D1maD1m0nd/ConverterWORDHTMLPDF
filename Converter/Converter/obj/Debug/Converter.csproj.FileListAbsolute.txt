@@ -273,3 +273,15 @@ D:\sharp\Converter\Converter\bin\Debug\System.Numerics.Vectors.xml
 D:\sharp\Converter\Converter\bin\Debug\System.Reflection.TypeExtensions.xml
 D:\sharp\Converter\Converter\bin\Debug\System.Runtime.CompilerServices.Unsafe.xml
 D:\sharp\Converter\Converter\obj\Debug\Converter.exe.config
+C:\Users\Dimond97\RiderProjects\ConverterWORDHTMLPDF\Converter\Converter\bin\Debug\System.Memory.dll
+C:\Users\Dimond97\RiderProjects\ConverterWORDHTMLPDF\Converter\Converter\bin\Debug\System.Numerics.Vectors.dll
+C:\Users\Dimond97\RiderProjects\ConverterWORDHTMLPDF\Converter\Converter\bin\Debug\System.Runtime.CompilerServices.Unsafe.dll
+C:\Users\Dimond97\RiderProjects\ConverterWORDHTMLPDF\Converter\Converter\bin\Debug\Fizzler.Systems.HtmlAgilityPack.pdb
+C:\Users\Dimond97\RiderProjects\ConverterWORDHTMLPDF\Converter\Converter\bin\Debug\System.Buffers.xml
+C:\Users\Dimond97\RiderProjects\ConverterWORDHTMLPDF\Converter\Converter\bin\Debug\System.IO.Packaging.xml
+C:\Users\Dimond97\RiderProjects\ConverterWORDHTMLPDF\Converter\Converter\bin\Debug\System.Memory.xml
+C:\Users\Dimond97\RiderProjects\ConverterWORDHTMLPDF\Converter\Converter\bin\Debug\System.Numerics.Vectors.xml
+C:\Users\Dimond97\RiderProjects\ConverterWORDHTMLPDF\Converter\Converter\bin\Debug\System.Reflection.TypeExtensions.xml
+C:\Users\Dimond97\RiderProjects\ConverterWORDHTMLPDF\Converter\Converter\bin\Debug\System.Runtime.CompilerServices.Unsafe.xml
+C:\Users\Dimond97\RiderProjects\ConverterWORDHTMLPDF\Converter\Converter\obj\Debug\Converter.exe.config
+C:\Users\Dimond97\RiderProjects\ConverterWORDHTMLPDF\Converter\Converter\obj\Debug\Converter.csproj.ResolveComReference.cache

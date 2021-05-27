@@ -38,6 +38,7 @@ namespace Converter
          */
         public void Convert(string path, string pathSaveFile)
         {
+            const string body = "body { width: 36cm;  margin: 1cm auto; max-width: 36cm; padding: 1cm; }";
             var fileInfo = new FileInfo(path);
 
             if (!fileInfo.Exists) throw new FileNotFoundException();
@@ -64,10 +65,9 @@ namespace Converter
                 }
             }
 
-            //string landscapehtml = FormatInvoice(true);
-            //HTML = FormatInvoice();
+            string landsacapeHtml = FormatInvoice(true);
             HTML = FormatTable("(работы, услуги)");
-            File.WriteAllBytes(pathSaveFile, SaveDocument());
+            File.WriteAllBytes(pathSaveFile, SaveDocument(landsacapeHtml));
             writeHtmlFile(pathSaveFile);
             Console.ReadKey();
         }
@@ -88,8 +88,9 @@ namespace Converter
       */
         private byte[] SaveDocument(string landsacapeHtml = "")
         {
+            
             HTML = HTML.Replace(SubstringCssSelector("body"),
-                "body { width: 36cm;  margin: 1cm auto; max-width: 36cm; padding: 1cm; }");
+                "body { width: 36cm;  margin: 1cm auto; max-width: 36cm; padding: 1cm; }" + CssConstants.br);
             var converter = new HtmlToPdf();
             var doc = converter.ConvertHtmlString(HTML);
 
@@ -140,7 +141,6 @@ namespace Converter
             {
                 using (one = PdfReader.Open(ms, PdfDocumentOpenMode.Import))
                 {
-                    ;
                 }
 
                 ms.Close();
@@ -152,9 +152,7 @@ namespace Converter
             {
                 using (two = PdfReader.Open(ms, PdfDocumentOpenMode.Import))
                 {
-                    ;
                 }
-
                 ms.Close();
             }
 
@@ -245,7 +243,6 @@ namespace Converter
                 {
                     InsertClass(tableNode, "table", "table", true);
                     InsertClass(node, "changeTdItem", "td");
-                    InsertClass(node, "changeTextIntable", "span");
                 }
             }
 
