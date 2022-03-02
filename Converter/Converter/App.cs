@@ -13,8 +13,8 @@
                            CssConstants.tableWidth
                 )
                 .Convert(
-                    @"Z:\Загрузки\Отчет комитенту №85 от 02.02.2021 (2).docx",
-                    @"C:\Users\Dimond97\Desktop\test\fileTest.pdf"
+                    @"C:\Users\dima\Desktop\test\Invoice_№ABLG42_22_от_16.02.2022_1.docx",
+                    @"C:\Users\dima\Desktop\test\Invoice_№ABLG42_22_от_16.02.2022_11.pdf"
                 );
         }
     }

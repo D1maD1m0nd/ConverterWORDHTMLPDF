@@ -3,7 +3,9 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Xml.Linq;
+using DocumentFormat.OpenXml.Math;
 using DocumentFormat.OpenXml.Packaging;
 using Fizzler.Systems.HtmlAgilityPack;
 using HtmlAgilityPack;
@@ -65,11 +67,12 @@ namespace Converter
                 }
             }
 
-            string landsacapeHtml = FormatInvoice(true);
-            HTML = FormatTable("(работы, услуги)");
-            File.WriteAllBytes(pathSaveFile, SaveDocument(landsacapeHtml));
+            var keys = new[] {"Payer", "Cargo", "Services", "Net", "SWIFT", "general", "Reference"};
+            HTML = FormatTable(keys);
+
+            File.WriteAllBytes(pathSaveFile, SaveDocument());
             writeHtmlFile(pathSaveFile);
-            Console.ReadKey();
+            
         }
 
         public PdfConverter writeHtmlFile(string pathSaveFile)
@@ -90,7 +93,7 @@ namespace Converter
         {
             
             HTML = HTML.Replace(SubstringCssSelector("body"),
-                "body { width: 36cm;  margin: 1cm auto; max-width: 36cm; padding: 1cm; }" + CssConstants.br);
+                "table { width:27cm } body { width: 36cm;  margin: 1cm auto; max-width: 36cm; padding: 1cm; }" + CssConstants.br);
             var converter = new HtmlToPdf();
             var doc = converter.ConvertHtmlString(HTML);
 
@@ -256,23 +259,27 @@ namespace Converter
          * 
          * @param key {string} -  ключ по которому происходит поиск страницы
          */
-        private string FormatTable(string key)
+        private string FormatTable(string[] keys)
         {
             var html = new HtmlDocument();
             html.LoadHtml(HTML);
             var document = html.DocumentNode;
-            var node = searchNode(document, key, "table");
-
-
-            if (node != null)
+            Parallel.ForEach(keys, key =>
             {
-                //InsertClass(node, "tableWidth", "table", true);
-                InsertClass(node, "columnTdX", "td");
-            }
-
-
+                var node = searchNode(document, key, "table");
+                if (node != null)
+                {
+                    InsertClass(node.ParentNode, "tableWidth", "table", true);
+                    InsertClass(node, "columnTdX", "td");
+                    InsertClass(node, "actFormatText", "span");
+                }
+            });
+            
             return document.OuterHtml;
         }
+        
+        
+        
 
 
         /**
@@ -307,12 +314,17 @@ namespace Converter
             string tag)
         {
             var htmlArr = document.QuerySelectorAll(tag);
-
-            foreach (var item in htmlArr)
+            HtmlNode node = null;
+            Parallel.ForEach(htmlArr, (item, state) =>
+            {
                 if (item.InnerText.IndexOf(keySearchValue, StringComparison.Ordinal) != -1)
-                    return item;
-
-            return null;
+                {
+                    node = item;
+                    state.Break();
+                }
+                    
+            });
+            return node;
         }
 
         /**
@@ -488,7 +500,7 @@ namespace Converter
                                 .FirstOrDefault() ?? fileInfo.FullName;
                         var spanElem = "";
                         //обработка шапки для изменения наложения элементов
-                        for (var i = 0; i < 10; i++) spanElem += $"span.pt-a0-00000{i}" + "{margin-right:40px;}";
+                        //for (var i = 0; i < 10; i++) spanElem += $"span.pt-a0-00000{i}" + "{margin-right:40px;}";
 
                         CSS += spanElem;
                         var settings = new WmlToHtmlConverterSettings
