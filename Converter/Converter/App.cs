@@ -10,7 +10,9 @@
                            CssConstants.changeTdItem +
                            CssConstants.table +
                            CssConstants.tdTextWidth +
-                           CssConstants.tableWidth
+                           CssConstants.tableWidth +
+                           CssConstants.imageRight +
+                           CssConstants.logoContainer
                 )
                 .Convert(
                     @"C:\Users\dima\Desktop\test\Invoice_№ABLG42_22_от_16.02.2022_1.docx",

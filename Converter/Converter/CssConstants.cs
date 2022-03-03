@@ -12,6 +12,22 @@
             "border-left: solid windowtext 2.0pt;" +
             "padding: 4pt;}";
 
+
+        public static string logoContainer = ".logo-container{line-height: 107.9%;" +
+                                             "margin-bottom: 1.5cm;" +
+                                             "font-family: Calibri;" +
+                                             "font-size: 11pt;" +
+                                             "margin-top: 0;" +
+                                             "margin-left: 0;" +
+                                             "margin-right: 12cm;}";
+        public static string imageRight =
+            ".logo-format {  font-size: 11pt;"+
+                    "font-style: normal;"+
+                    "font-weight: normal;"+
+                    "margin: 0;"+
+                    "padding: 0;"+
+                    "float: right;}";
+
         public static string body = "body { width: 35cm;" +
                                     "margin: 1cm auto;" +
                                     "max-width: 23cm;" +

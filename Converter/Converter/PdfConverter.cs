@@ -5,7 +5,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using DocumentFormat.OpenXml.Math;
 using DocumentFormat.OpenXml.Packaging;
 using Fizzler.Systems.HtmlAgilityPack;
 using HtmlAgilityPack;
@@ -69,10 +68,11 @@ namespace Converter
 
             var keys = new[] {"Payer", "Cargo", "Services", "Net", "SWIFT", "general", "Reference"};
             HTML = FormatTable(keys);
+            HTML = FormatSingleByPath("//span[@class='pt-a0-000000']", "logo-format");
+            HTML = FormatSingleByPath("//p[@class='pt-a']", "logo-container");
 
             File.WriteAllBytes(pathSaveFile, SaveDocument());
             writeHtmlFile(pathSaveFile);
-            
         }
 
         public PdfConverter writeHtmlFile(string pathSaveFile)
@@ -80,6 +80,8 @@ namespace Converter
             var writer = File.CreateText(pathSaveFile.Replace(".pdf", ".html"));
             writer.WriteLine(HTML);
             writer.Dispose();
+
+            "{dsadsa}".GetHashCode();
             return this;
         }
 
@@ -91,9 +93,9 @@ namespace Converter
       */
         private byte[] SaveDocument(string landsacapeHtml = "")
         {
-            
             HTML = HTML.Replace(SubstringCssSelector("body"),
-                "table { width:27cm } body { width: 36cm;  margin: 1cm auto; max-width: 36cm; padding: 1cm; }" + CssConstants.br);
+                "table { width:27cm } body { width: 36cm;  margin: 1cm auto; max-width: 36cm; padding: 1cm; }" +
+                CssConstants.br);
             var converter = new HtmlToPdf();
             var doc = converter.ConvertHtmlString(HTML);
 
@@ -156,6 +158,7 @@ namespace Converter
                 using (two = PdfReader.Open(ms, PdfDocumentOpenMode.Import))
                 {
                 }
+
                 ms.Close();
             }
 
@@ -173,7 +176,7 @@ namespace Converter
 
             void CopyPages(PdfDocument from, PdfDocument to)
             {
-                for (var i = 0; i < from.PageCount; i++) to.AddPage(@from.Pages[i]);
+                for (var i = 0; i < from.PageCount; i++) to.AddPage(from.Pages[i]);
             }
         }
 
@@ -274,12 +277,21 @@ namespace Converter
                     InsertClass(node, "actFormatText", "span");
                 }
             });
-            
+
             return document.OuterHtml;
         }
-        
-        
-        
+
+
+        private string FormatSingleByPath(string path, string currentClass)
+        {
+            var html = new HtmlDocument();
+            html.LoadHtml(HTML);
+            var document = html.DocumentNode;
+            var node = searchNode(document, path);
+            if (node != null) InsertClass(node, currentClass);
+
+            return document.OuterHtml;
+        }
 
 
         /**
@@ -295,9 +307,9 @@ namespace Converter
             foreach (var item in htmlArr)
             {
                 var node1 = item.QuerySelectorAll("span").ToArray();
-                for (var i = 0; i < node1.Length; i++)
-                    if (node1[i].InnerHtml.Contains("<br>"))
-                        node1[i].Remove();
+                foreach (var item1 in node1)
+                    if (item1.InnerHtml.Contains("<br>"))
+                        item1.Remove();
             }
         }
 
@@ -322,9 +334,23 @@ namespace Converter
                     node = item;
                     state.Break();
                 }
-                    
             });
             return node;
+        }
+
+        /**
+         * Ищет экземпляр Node в document по
+         * @param document - исходный объект документа
+         * 
+         * @param path - путь xPath
+         * 
+         * @return {HtmlAgilityPack.HtmlNode} возвращает найденный экземпляр HtmlNode
+         */
+        private HtmlNode searchNode(HtmlNode document,
+            string path)
+        {
+            var select = document.SelectSingleNode(path);
+            return select;
         }
 
         /**
@@ -355,6 +381,17 @@ namespace Converter
             return this;
         }
 
+        private PdfConverter InsertClass(HtmlNode node, string currentClass)
+        {
+            if (node != null)
+            {
+                node.Attributes["class"].Value = currentClass;
+                return this;
+            }
+
+            return this;
+        }
+
         private Uri FixUri(string brokenUri)
         {
             var newURI = string.Empty;
@@ -380,7 +417,7 @@ namespace Converter
                 {
                     memoryStream.Write(byteArray, 0, byteArray.Length);
                     using (var wDoc =
-                        WordprocessingDocument.Open(memoryStream, true))
+                           WordprocessingDocument.Open(memoryStream, true))
                     {
                         var pageTitle = nameDoc;
                         var part = wDoc.CoreFilePropertiesPart;
@@ -490,7 +527,7 @@ namespace Converter
                 {
                     memoryStream.Write(byteArray, 0, byteArray.Length);
                     using (var wDoc =
-                        WordprocessingDocument.Open(memoryStream, true))
+                           WordprocessingDocument.Open(memoryStream, true))
                     {
                         var pageTitle = fileInfo.FullName;
                         var part = wDoc.CoreFilePropertiesPart;
